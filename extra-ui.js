@@ -15,6 +15,7 @@ var buttonToMenuMap = new Map([
     ['zoom-button', 'zoom-toolbar'],
     ['edit-button', 'edit-form'],
     ['about-button', 'about-menu'],
+
 ]);
 
 class DomChooser {
@@ -570,5 +571,41 @@ function resetReloadButton() {
     else {
         reloadButton.classList.add('disabled');
     }
+}
+
+//== Level navigation code alternative
+let menuItems = Array.from(document.querySelectorAll('#ng-hc-list li'));
+let currentMenuIndex = -1;
+menuItems.forEach((item, index) => {
+    item.addEventListener('click', (ev) => {
+        currentMenuIndex = index;
+        const name = item.getAttribute('data-name');
+        modalGroup.classList.add('loading');
+        loadGameFromHC(name, null,
+            () => succHookWrapper('ng-hc-menu', toQueryString({'srctype':'hc','src':name})),
+            toolbarFailHook
+        );
+        updateCurrentPuzzle(name);
+    });
+});
+
+
+document.getElementById('prev-level-button').addEventListener('click', () => {
+    if (currentMenuIndex > 0) {
+        currentMenuIndex = (currentMenuIndex - 1 + menuItems.length) % menuItems.length;
+        menuItems[currentMenuIndex].click(); // simulate menu click
+    }
+});
+
+document.getElementById('next-level-button').addEventListener('click', () => {
+    if (currentMenuIndex < menuItems.length - 1) {
+        currentMenuIndex = (currentMenuIndex + 1) % menuItems.length;
+        menuItems[currentMenuIndex].click(); // simulate menu click
+    }
+});
+
+function updateCurrentPuzzle(nameOrNumber) {
+    const label = document.getElementById('current-puzzle-label');
+    label.textContent = "Trial " + nameOrNumber;
 }
 // @license-end

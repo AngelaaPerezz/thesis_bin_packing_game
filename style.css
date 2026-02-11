@@ -539,3 +539,44 @@ button[type="submit"] {
     height: 100px;
     flex-shrink: 9999999;
 }
+/* Level Navigation Styles */
+#level-display {
+    background-color: var(--menu-color);
+    border-left: 1px solid var(--toolbar-outline-color);
+    border-bottom: 1px solid var(--toolbar-outline-color);
+    border-right: none;
+    min-height: 3rem;
+    font-size: 0.95rem;
+}
+
+#current-level {
+    transform: scaleX(0.9);
+    transform-origin: center;
+}
+
+
+#next-level-button .icon {
+    transform: scaleX(-0.9);
+    transform-origin: center;
+}
+
+#prev-level-button:hover,
+#next-level-button:hover {
+    background-color: #eee;    /* hover effect */
+}
+
+#current-puzzle-button {
+    display: flex;
+    flex-direction: column; /* icon on top, label below */
+    align-items: center;
+    justify-content: center;
+    cursor: default;        /* not clickable if you just display status */
+}
+
+
+#current-puzzle-label {
+    font-size: 0.8rem;
+    margin-top: 0.1rem;
+    text-align: center;
+    font-weight: bold;
+}

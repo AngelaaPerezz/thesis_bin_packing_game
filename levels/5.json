@@ -1,0 +1,18 @@
+{
+"binXLen": 3,
+"binYLen": 3,
+"gameType": "bp",
+"rotation": false,
+"items": [
+    {"xLen": 2, "yLen": 1, "color": "yellow", "n": 3},
+    {"xLen": 1, "yLen": 2, "color": "red", "n": 2}
+],
+"solution": [
+    [0, 1, 0],
+    [0, 1, 1],
+    [0, 0, 2],
+    [0, 0, 0],
+    [1, 0, 0]
+]
+}
+

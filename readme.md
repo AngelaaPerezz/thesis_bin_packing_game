@@ -93,3 +93,23 @@ All code for this game other than the icons is licensed under
 The icons used in this game are derived from
 [Font Awesome Free](https://fontawesome.com/license/free).
 They are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
+
+# Json Format
+{
+"binXLen": 3, 
+"binYLen": 3,
+"gameType": "bp",
+"rotation": false,
+"items": [
+    {"xLen": 2, "yLen": 1, "color": "yellow", "n": 3},
+    {"xLen": 1, "yLen": 2, "color": "red", "n": 2}
+],
+"solution": [
+    [0, 1, 0], # [container, column, row]
+    [0, 1, 1],
+    [0, 0, 2],
+    [0, 0, 0],
+    [1, 0, 0]
+]
+}
