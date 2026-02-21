@@ -376,6 +376,12 @@ function addExportEventListeners() {
             }
             unsetToolbar('export-button');
         });
+    document.getElementById('export-li-complete-logs').addEventListener('click', function(ev) {
+            if(game !== null) {
+                game.packingLog.downloadAllTrials('complete-logs.json');
+            }
+            unsetToolbar('export-button');
+        });
 }
 
 var menuTraversalList = [

@@ -16,6 +16,8 @@ var game = null;
 var globalDragData = null;
 var uploadInfo = {'scaleFactor': null, 'succHook': null, 'failHook': null};
 
+// Global storage for completed trials across game instances
+var completeTrials = {};
 //==[ Logging System ]==========================================================
 
 
@@ -25,6 +27,7 @@ class PackingLog {
         this.events = [];
         this.lastEventTime = null;
         this.n_backtrackings = 0;
+        this.trials = {};
     }
 
     _getGridSnapshot() {
@@ -132,12 +135,34 @@ class PackingLog {
         );
     }
 
+    finishTrial(trialNumber) {
+        // Save current trial data
+        const trialData = {
+            items: this._getItemsMetadata(),
+            actions: this.events
+        };
+        // store in per-game record
+        this.trials[`trial ${trialNumber}`] = trialData;
+        // also store globally so trials persist across Game instances
+        completeTrials[`trial ${trialNumber}`] = trialData;
+        
+        // Reset for next trial
+        this.events = [];
+        this.lastEventTime = null;
+        this.n_backtrackings = 0;
+    }
+
     getLog() {
         const logData = {
             items: this._getItemsMetadata(),
             actions: this.events
         };
         return this.formatMatrix(logData);
+    }
+
+    getAllTrialsLog() {
+        // return global collection of completed trials across games
+        return this.formatMatrix(completeTrials);
     }
 
     downloadLog(filename = 'packing-log.json') {
@@ -151,8 +176,21 @@ class PackingLog {
         URL.revokeObjectURL(url);
     }
 
+    downloadAllTrials(filename = 'complete-logs.json') {
+        const logData = this.getAllTrialsLog();
+        const blob = new Blob([logData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(url);
+    }
+
     clearLog() {
         this.events = [];
+        this.lastEventTime = null;
+        this.n_backtrackings = 0;
     }
 }
 
@@ -734,6 +772,9 @@ class Game {
         this._recordHistoryCommand({'cmd': 'bulkMove', 'oldPos': oldPos, 'newPos': newPos});
         this.won = true;
         this.endTime = Date.now();
+        const trialNumber = this.level.trialNumber !== undefined ? this.level.trialNumber : 0;
+        console.log('Game finished. Trial number:', trialNumber, 'Level trialNumber property:', this.level.trialNumber);
+        this.packingLog.finishTrial(trialNumber);
         this.putBack(newPos);
     }
 
@@ -1021,8 +1062,10 @@ class Game {
         if(!this.won) {
             if(this.packedStats.count === this.items.length && used <= lb) {
                 this.won = true;
+                this.packingLog.finishTrial(this.level.trialNumber);
                 this.endTime = Date.now();
                 window.setTimeout(showCelebration, 100);
+
             }
         }
         return binTypes;

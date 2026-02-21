@@ -1,6 +1,7 @@
 
 
 {
+"trialNumber": 8,
 "binXLen": 6,
 "binYLen": 6,
 "gameType": "bp",
@@ -14,13 +15,6 @@
   {"xLen": 2, "yLen": 1, "color": "yellow", "n": 2},
   {"xLen": 3, "yLen": 1, "color": "hsl(48, 100%, 50%)", "n": 1},
   {"xLen": 1, "yLen": 2, "color": "green", "n": 1}
-
-
-
-
-
-
-
 
 
 ],  

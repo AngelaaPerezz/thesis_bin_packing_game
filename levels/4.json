@@ -1,6 +1,7 @@
 {
+"trialNumber": 4,
 "binXLen": 7,
-"binYLen": 7,
+"binYLen": 6,
 "gameType": "bp",
 "rotation": false,
 "items": [

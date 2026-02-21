@@ -88,7 +88,7 @@ function itemInfoFromObject(j, id, defaultProfit) {
 
 function processLevel(j) {
     let reqProps = ['binXLen', 'binYLen', 'items'];
-    let optProps = {'gameType': 'bp', 'startPos': [], 'solutions': null, 'defaultProfit': 0};
+    let optProps = {'gameType': 'bp', 'startPos': [], 'solutions': null, 'defaultProfit': 0, 'trialNumber': 0};
     let modProps = {'lowerBound': 'origLB', 'upperBound': 'origUB'};
     let o = readObjectPropsWithAssert(j, reqProps, optProps, modProps, 'level');
     let items = [];
@@ -631,7 +631,7 @@ function getQParams() {
 
 function loadGameFromQParams(q, succHook=null, failHook=null) {
     if(Object.keys(q).length === 0) {
-        q = {'srctype': 'gen', 'src': 'guill'};
+        q = {'srctype': 'hc', 'src': '1'};
     }
 
     let scaleFactor = null;
