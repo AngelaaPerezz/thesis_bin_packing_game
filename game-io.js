@@ -503,6 +503,9 @@ function loadGameFromRawLevel(level, scaleFactor=null, succHook=null, failHook=n
         clearGame();
         gameLoadParams = null;
         game = new Game(processedLevel, scaleFactor);
+        // Clear initialization events (those from automatic packing) and
+        // keep logging user interactions from now on.
+        window.setTimeout(() => { game.packingLog.clearLog(); }, 0);
         if(succHook !== null) {
             succHook();
         }

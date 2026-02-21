@@ -16,6 +16,144 @@ var game = null;
 var globalDragData = null;
 var uploadInfo = {'scaleFactor': null, 'succHook': null, 'failHook': null};
 
+//==[ Logging System ]==========================================================
+
+
+class PackingLog {
+    constructor(game) {
+        this.game = game;
+        this.events = [];
+        this.lastEventTime = null;
+    }
+
+    _getGridSnapshot() {
+        // Create a matrix for each bin showing which item is at each position
+        const grids = [];
+        for (let binIdx = 0; binIdx < this.game.bins.length; binIdx++) {
+            const bin = this.game.bins[binIdx];
+            const binXLen = bin.bin.xLen;
+            const binYLen = bin.bin.yLen;
+            
+            // Initialize grid with -1 (empty)
+            const grid = [];
+            for (let y = 0; y < binYLen; y++) {
+                grid[y] = [];
+                for (let x = 0; x < binXLen; x++) {
+                    grid[y][x] = -1;
+                }
+            }
+            
+            // Mark positions occupied by items
+            for (let itemIdx = 0; itemIdx < this.game.items.length; itemIdx++) {
+                const item = this.game.items[itemIdx];
+                if (item.binUI !== null && item.binUI.id === binIdx) {
+                    // Fill grid cells with item ID
+                    for (let y = 0; y < item.itemInfo.yLen; y++) {
+                        for (let x = 0; x < item.itemInfo.xLen; x++) {
+                            grid[item.yPos + y][item.xPos + x] = itemIdx;
+                        }
+                    }
+                }
+            }
+            grids.push(grid);
+        }
+        return grids;
+    }
+
+    _getItemsMetadata() {
+        // Get metadata for all items
+        const items = [];
+        for (let itemIdx = 0; itemIdx < this.game.items.length; itemIdx++) {
+            const item = this.game.items[itemIdx];
+            items.push({
+                itemId: itemIdx,
+                xLen: item.itemInfo.xLen,
+                yLen: item.itemInfo.yLen,
+                color: item.itemInfo.color
+            });
+        }
+        return items;
+    }
+
+    logAttach(itemId, binId, xPos, yPos) {
+        const elapsedTime = this.game._getElapsedTime();
+        const reactionTime = this.lastEventTime !== null ? elapsedTime - this.lastEventTime : null;
+        
+        this.events.push({
+            action: 'placement',
+            time: timeToString(elapsedTime),
+            reactionTime: reactionTime,
+            itemId: itemId,
+            binId: binId,
+            xPos: xPos,
+            yPos: yPos,
+            binGrids: this._getGridSnapshot()
+        });
+        
+        this.lastEventTime = elapsedTime;
+    }
+
+    logDetach(itemId) {
+        const elapsedTime = this.game._getElapsedTime();
+        const reactionTime = this.lastEventTime !== null ? elapsedTime - this.lastEventTime : null;
+        
+        this.events.push({
+            action: 'unplacement',
+            time: timeToString(elapsedTime),
+            reactionTime: reactionTime,
+            itemId: itemId,
+            binGrids: this._getGridSnapshot()
+        });
+        
+        this.lastEventTime = elapsedTime;
+    }
+
+    formatMatrix(data) {
+        const rowMarker = "__ROW__";
+
+        const json = JSON.stringify(data, (key, value) => {
+            // If this is a row (array of numbers)
+            if (
+                Array.isArray(value) &&
+                value.every(v => typeof v === "number")
+            ) {
+                return rowMarker + JSON.stringify(value);
+            }
+            return value;
+        }, 2);
+
+        // Remove quotes around marked rows
+        return json.replace(
+            new RegExp(`"${rowMarker}([^"]+)"`, "g"),
+            "$1"
+        );
+    }
+
+    getLog() {
+        const logData = {
+            items: this._getItemsMetadata(),
+            actions: this.events
+        };
+        return this.formatMatrix(logData);
+    }
+
+    downloadLog(filename = 'packing-log.json') {
+        const logData = this.getLog();
+        const blob = new Blob([logData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(url);
+    }
+
+    clearLog() {
+        this.events = [];
+    }
+}
+
+
 //==[ Logic Layer ]=============================================================
 
 class Rectangle {
@@ -397,6 +535,7 @@ class Game {
 
         this._createStatsBar();
         this._startTimer();
+        this.packingLog = new PackingLog(this); 
         this._setScaleFactor(scaleFactor);
         this._createItems();
         this._createBinsAndPackItems(this.level.startPos);
@@ -497,6 +636,7 @@ class Game {
                 changeFunc();
             }
             this._assessBins();
+            this.packingLog.logDetach(itemId);
         }
     }
 
@@ -529,6 +669,7 @@ class Game {
                 changeFunc();
             }
             this._assessBins();
+            this.packingLog.logAttach(itemId, binId, xPos, yPos);
             return true;
         }
         else {
@@ -1166,6 +1307,24 @@ class Game {
         this.timerId = setInterval(showTime, 100);
     }
 
+    _getElapsedTime() {
+        if(game === null) {
+            console.warn('game is null but getTime is still running.'); 
+            return 0;
+        }
+        else if(game.won) {
+            if(game.endTime !== null) {
+                return game.endTime - game.startTime;
+            }
+            else {
+                return 0;
+            }   
+        }
+        else {
+            return Date.now() - game.startTime;
+        }
+    }
+
     _destroyTimer() {
         clearInterval(this.timerId);
     }
@@ -1201,6 +1360,8 @@ function showTime() {
         game.statsDomElems['time'].innerHTML = timeToString(delta);
     }
 }
+
+
 
 function setMouseMode(key, mode) {
     if(mode === '') {mode = null;}

@@ -95,7 +95,7 @@ The icons used in this game are derived from
 They are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
 
-# Json Format
+## Json Format
 {
 "binXLen": 3, 
 "binYLen": 3,
@@ -113,3 +113,25 @@ They are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/
     [1, 0, 0]
 ]
 }
+
+## Runnning
+
+### Locally 
+python -m http.server 8000 
+ on url: http://localhost:8000
+
+ # Objects 
+{"xLen": 1, "yLen": 1, "color": "blue", "n": 3},
+{"xLen": 1, "yLen": 2, "color": "green", "n": 2}
+{"xLen": 2, "yLen": 1, "color": "yellow", "n": 3},
+{"xLen": 2, "yLen": 2, "color": "red", "n": 2}
+{"xLen": 2, "yLen": 3, "color": "purple", "n": 3},
+{"xLen": 3, "yLen": 2, "color": "orange", "n": 2},
+{"xLen": 3, "yLen": 1, "color": "hsl(48, 100%, 50%)", "n": 3},
+{"xLen": 1, "yLen": 3, "color": "hsl(196, 100%, 50%)", "n": 3},
+{"xLen": 3, "yLen": 3, "color": "hsl(315, 100%, 50%)", "n": 3},
+{"xLen": 1, "yLen": 4, "color": "hsl(86, 100%, 50%)", "n": 2},
+{"xLen": 1, "yLen": 5, "color": "hsl(289, 100%, 50%)", "n": 2},
+
+{"xLen": 4, "yLen": 1, "color": "hsl(154, 100%, 50%)", "n": 2},
+{"xLen": 4, "yLen": 4, "color": "hsl(175, 100%, 50%)", "n": 2}

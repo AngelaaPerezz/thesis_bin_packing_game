@@ -1,13 +1,16 @@
 {
-"binXLen": 5,
-"binYLen": 5,
+"binXLen": 7,
+"binYLen": 7,
 "gameType": "bp",
 "rotation": false,
 "items": [
-    {"xLen": 1, "yLen": 3, "n": 1, "color": "hsl(190,100%,55%)"},
-    {"xLen": 1, "yLen": 2, "n": 2, "color": "hsl(200,100%,55%)"},
-    {"xLen": 2, "yLen": 2, "n": 2, "color": "hsl(240,100%,55%)"},
-    {"xLen": 4, "yLen": 1, "n": 2, "color": "hsl(280,100%,55%)"}
+    {"xLen": 2, "yLen": 2, "color": "red", "n": 2},
+    {"xLen": 1, "yLen": 1, "color": "blue", "n": 2},
+    {"xLen": 1, "yLen": 3, "color": "hsl(196, 100%, 50%)", "n": 3},
+{"xLen": 3, "yLen": 3, "color": "hsl(315, 100%, 50%)", "n": 1},
+    {"xLen": 2, "yLen": 3, "color": "purple", "n": 1},
+    {"xLen": 2, "yLen": 1, "color": "yellow", "n": 1}
+
 ],
 "solution": [
     [0, 2, 1],

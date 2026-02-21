@@ -363,6 +363,19 @@ function addExportEventListeners() {
             }
             unsetToolbar('export-button');
         });
+    document.getElementById('export-li-log').addEventListener('click', function(ev) {
+            if(game !== null) {
+                game.packingLog.downloadLog('packing-log.json');
+            }
+            unsetToolbar('export-button');
+        });
+    document.getElementById('export-li-clear-log').addEventListener('click', function(ev) {
+            if(game !== null) {
+                game.packingLog.clearLog();
+                addMsg('success', 'Packing log cleared.');
+            }
+            unsetToolbar('export-button');
+        });
 }
 
 var menuTraversalList = [
