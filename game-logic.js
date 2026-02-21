@@ -24,6 +24,7 @@ class PackingLog {
         this.game = game;
         this.events = [];
         this.lastEventTime = null;
+        this.n_backtrackings = 0;
     }
 
     _getGridSnapshot() {
@@ -87,6 +88,7 @@ class PackingLog {
             binId: binId,
             xPos: xPos,
             yPos: yPos,
+            n_backtrackings: this.n_backtrackings,
             binGrids: this._getGridSnapshot()
         });
         
@@ -96,12 +98,13 @@ class PackingLog {
     logDetach(itemId) {
         const elapsedTime = this.game._getElapsedTime();
         const reactionTime = this.lastEventTime !== null ? elapsedTime - this.lastEventTime : null;
-        
+        this.n_backtrackings = this.n_backtrackings + 1
         this.events.push({
             action: 'unplacement',
             time: timeToString(elapsedTime),
             reactionTime: reactionTime,
             itemId: itemId,
+            n_backtrackings: this.n_backtrackings,   
             binGrids: this._getGridSnapshot()
         });
         
