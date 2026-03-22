@@ -15,6 +15,7 @@
 <canvas width="0" height="0" id="celebrate-canvas"></canvas>
 <header id="main-header">
     <ul id="main-toolbar" class="toolbar">
+        <li id="participant-toolbar-status" style="color: #fff; font-size: 1em; list-style: none; padding: 0 0.5em 0 0.5em;">No participant loaded.</li>
         <li id="new-game-button" title="New game">
             <svg class="icon" id="plus-icon"><title>New game</title>
                 <use xlink:href="sprites.svg#fa-plus"/></svg>
@@ -75,6 +76,10 @@
                 <use xlink:href="sprites.svg#fa-edit"/></svg>
             <span class="label">Edit</span>
         </li>
+        <li id="questionnaire-button" title="Open questionnaire">
+            <svg class="icon" id="questionnaire-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 17a1.25 1.25 0 110-2.5A1.25 1.25 0 0112 19zm1.75-7.5h-3.5v-1.25c0-.69.56-1.25 1.25-1.25.75 0 1.25-.5 1.25-1.25S11.5 5.5 10.75 5.5 9.5 6 9.5 6.75H8c0-1.66 1.34-3 3-3s3 1.34 3 3c0 1.25-.75 2-1.25 2.25-.25.25-.5.5-.5 1.25V11.5z"/></svg>
+            <span class="label">Survey</span>
+        </li>
         <li id="dark-mode-button">
             <svg class="icon light-only" id="moon-icon"><title>Switch to dark mode</title>
                 <use xlink:href="sprites.svg#fa-moon"/></svg>
@@ -100,6 +105,10 @@
         </li>
         <li id="current-puzzle-button" title="Current puzzle">
             <span class="label" id="current-puzzle-label"></span>
+        </li>
+        <li id="participant-button" title="Load participant schedule">
+            <svg class="icon" id="participant-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            <span class="label">Participant</span>
         </li>
     </ul>
     <ul id="zoom-toolbar" class="toolbar disabled">
@@ -208,6 +217,7 @@ and documentation.</p>
             <li data-name="6">Level 6</li>
             <li data-name="7">Level 7</li>
             <li data-name="8">Level 8</li>
+            <li data-name="9">Level 9</li>
 
         </ul>
     </div>
@@ -243,6 +253,113 @@ and documentation.</p>
         </header>
         <ul id="auto-pack-list" class="menu-body"></ul>
     </div>
+    <form id="participant-menu" class="menu disabled">
+        <header>
+            <div class="heading">Select participant (1-40)</div>
+            <div class="close-btn"></div>
+        </header>
+        <div class="options menu-body">
+            <p>Enter participant number and click Load.</p>
+            <div class="input-pair">
+                <label for="participant-id">Participant ID</label>
+                <input id="participant-id" name="participant-id" type="number" min="1" max="40" placeholder="1"/>
+            </div>
+            <button id="participant-load" type="button">Load participant</button>
+        </div>
+        <div id="participant-status" style="margin-top: 1em; text-align: center; color: #555; font-size: 1em;">No participant loaded.</div>
+    </form>
+    <form id="questionnaire-menu" class="menu disabled">
+
+<header>
+    <div class="heading">Post-experiment questionnaire</div>
+    <div class="close-btn"></div>
+</header>
+
+<div class="options menu-body">
+
+<p>Please answer the questions below and click Submit.</p>
+
+<div class="input-pair">
+    <label for="age">What is your age (in years)?</label>
+    <input id="age" name="age" type="number" placeholder="e.g. 23" />
+</div>
+
+<div class="input-pair">
+    <label>Gender</label>
+    <div class="button-group">
+        <input type="radio" id="g-man" name="gender" value="man"><label for="g-man">Man</label>
+        <input type="radio" id="g-woman" name="gender" value="woman"><label for="g-woman">Woman</label>
+        <input type="radio" id="g-nb" name="gender" value="nonbinary"><label for="g-nb">Non-binary</label>
+        <input type="radio" id="g-na" name="gender" value="noanswer"><label for="g-na">Prefer not to answer</label>
+    </div>
+    <input name="gender_other" type="text" placeholder="Prefer to self-describe…" />
+</div>
+
+<div class="input-pair">
+    <label>Highest completed degree</label>
+    <div class="button-group">
+        <input type="radio" id="deg-hs" name="degree" value="hs"><label for="deg-hs">High school</label>
+        <input type="radio" id="deg-ba" name="degree" value="ba"><label for="deg-ba">Bachelor</label>
+        <input type="radio" id="deg-ma" name="degree" value="ma"><label for="deg-ma">Master</label>
+        <input type="radio" id="deg-phd" name="degree" value="phd"><label for="deg-phd">PhD</label>
+    </div>
+    <input name="degree_other" type="text" placeholder="Other degree…" />
+</div>
+
+<div class="input-pair">
+    <label>Vision</label>
+    <div class="button-group">
+        <input type="radio" id="vis-norm" name="vision" value="normal"><label for="vis-norm">Normal</label>
+        <input type="radio" id="vis-corr" name="vision" value="corrected"><label for="vis-corr">Corrected-to-normal</label>
+    </div>
+    <input name="vision_other" type="text" placeholder="Other…" />
+</div>
+
+<div class="input-pair">
+    <label>Have you played similar puzzles?</label>
+    <div class="button-group">
+        <input type="radio" id="p-never" name="puzzle_exp" value="never"><label for="p-never">Never</label>
+        <input type="radio" id="p-rare" name="puzzle_exp" value="rarely"><label for="p-rare">Rarely</label>
+        <input type="radio" id="p-some" name="puzzle_exp" value="sometimes"><label for="p-some">Sometimes</label>
+        <input type="radio" id="p-often" name="puzzle_exp" value="often"><label for="p-often">Often</label>
+        <input type="radio" id="p-voften" name="puzzle_exp" value="veryoften"><label for="p-voften">Very often</label>
+    </div>
+    <input name="puzzle_games" type="text" placeholder="If applicable — name the games/puzzles…" />
+</div>
+
+<div class="input-pair">
+    <label>How frequently do you currently play such games?</label>
+    <input name="current_play" type="text" placeholder="e.g. once per week" />
+</div>
+
+<div class="input-pair">
+    <label>How well do you think you performed?</label>
+    <div class="button-group">
+        <input type="radio" id="perf-vpoor" name="performance" value="vpoor"><label for="perf-vpoor">Very poorly</label>
+        <input type="radio" id="perf-poor" name="performance" value="poor"><label for="perf-poor">Poorly</label>
+        <input type="radio" id="perf-neu" name="performance" value="neutral"><label for="perf-neu">Neutral</label>
+        <input type="radio" id="perf-well" name="performance" value="well"><label for="perf-well">Well</label>
+        <input type="radio" id="perf-vwell" name="performance" value="vwell"><label for="perf-vwell">Very well</label>
+    </div>
+</div>
+
+<div class="input-pair">
+    <label>What general strategy did you use?</label>
+    <input name="strategy" type="text" placeholder="Describe your thought process…" />
+</div>
+
+<div class="input-pair">
+    <label>Any further remarks?</label>
+    <input name="remarks" type="text" placeholder="Your comments…" />
+</div>
+
+</div>
+
+<button id="questionnaire-submit" type="submit">Submit</button>
+
+</form>
+
+    
     <div id="export-menu" class="menu disabled">
         <header>
             <div class="heading">Export as figure</div>

@@ -11,6 +11,8 @@ var buttonToMenuMap = new Map([
     ['new-game-button', 'ng-menu'],
     ['solutions-button', 'solutions-menu'],
     ['auto-pack-button', 'auto-pack-menu'],
+    ['participant-button', 'participant-menu'],
+    ['questionnaire-button', 'questionnaire-menu'],
     ['export-button', 'export-menu'],
     ['zoom-button', 'zoom-toolbar'],
     ['edit-button', 'edit-form'],
@@ -71,6 +73,16 @@ class DomChooser {
 var toolbarButtonChooser = new DomChooser('pressed', null);
 var menuChooser = new DomChooser(null, 'disabled');
 
+
+// Startup: if no querystring, auto-load participant 1 trial 1
+window.addEventListener('DOMContentLoaded', function() {
+    const qs = window.location.search;
+    if (!qs || qs === '' || qs === '?' || !qs.includes('srctype')) {
+        // No querystring or missing srctype, load participant 1 trial 1
+        loadParticipantTrials(1);
+    }
+});
+
 function toggleFromToolbar(buttonId) {
     toolbarButtonChooser.select(buttonId, true);
     menuChooser.select(buttonToMenuMap.get(buttonId), true);
@@ -83,6 +95,184 @@ function unsetToolbar(buttonId=null) {
 
 function getPersistentHeaderHeight() {
     return document.getElementById('main-toolbar').getBoundingClientRect().height;
+}
+
+var participantTrialList = null;
+var participantTrialIndex = -1;
+var participantIdSelected = null;
+
+function parseExperimentTrialsCsv(csvText) {
+    let lines = csvText.trim().split(/\r?\n/);
+    if(lines.length < 2) { return []; }
+    let headers = lines[0].split(',').map(x => x.trim());
+    let rows = [];
+    for(let i = 1; i < lines.length; i++) {
+        let line = lines[i].trim();
+        if(line === '') { continue; }
+        let cols = line.split(',');
+        if(cols.length !== headers.length) { continue; }
+        let row = {};
+        for(let j = 0; j < headers.length; j++) {
+            row[headers[j]] = cols[j].trim();
+        }
+        rows.push(row);
+    }
+    return rows;
+}
+
+function loadParticipantTrialByIndex(index) {
+    if(!participantTrialList || index < 0 || index >= participantTrialList.length) {
+        addMsg('error', 'Announced participant trial index invalid: ' + index);
+        return;
+    }
+    participantTrialIndex = index;
+    const trial = participantTrialList[index];
+    const stimulus = Number(trial.stimulus);
+    if(Number.isNaN(stimulus)) {
+        addMsg('error', 'Stimulus value in trial is not a number: ' + trial.stimulus);
+        return;
+    }
+
+    const stimulusFile = 'experiment_puzzles/final_selection/' + String(stimulus).padStart(3, '0') + '.json';
+    var cond = (trial.condition || '').toUpperCase();
+    modalGroup.classList.add('loading');
+    // Fetch the puzzle JSON, adjust bin size if needed, then load
+    fetch(stimulusFile)
+        .then(resp => {
+            if (!resp.ok) throw new Error('HTTP status ' + resp.status);
+            return resp.json();
+        })
+        .then(level => {
+            // Dynamically import the bin size logic if not already loaded
+            if (cond === 'A' || cond === 'C') {
+                // Inline logic to avoid import issues
+                if (Array.isArray(level.bins)) {
+                    for (let bin of level.bins) {
+                        bin.xLen = (bin.xLen || 0) + 1;
+                        bin.yLen = (bin.yLen || 0) + 1;
+                    }
+                } else if (typeof level.binXLen === 'number' && typeof level.binYLen === 'number') {
+                    level.binXLen += 1;
+                    level.binYLen += 1;
+                }
+            }
+            loadGameFromRawLevel(level, null,
+                function() {
+                    modalGroup.classList.remove('loading');
+                    if (typeof game !== 'undefined' && game !== null) {
+                        game.won = false;
+                        game.putBack();
+                    }
+                    updateCurrentPuzzle(trial.Trial);
+                    // Timer logic for A/B/C/D conditions
+                    if (cond === 'A' || cond === 'B') {
+                        startTrialTimer(60);
+                    } else if (cond === 'C' || cond === 'D') {
+                        startTrialTimer(180);
+                    } else {
+                        timerBox.style.display = 'none';
+                        if (trialTimer) clearInterval(trialTimer);
+                    }
+                },
+                function(err) {
+                    modalGroup.classList.remove('loading');
+                    addMsg('error', 'Could not load stimulus: ' + err);
+                }
+            );
+        })
+        .catch(err => {
+            modalGroup.classList.remove('loading');
+            addMsg('error', 'Could not load stimulus file: ' + stimulusFile + ' ; ' + err);
+        });
+}
+
+function loadParticipantTrials(participantId) {
+    participantId = Number(participantId);
+    if(Number.isNaN(participantId) || participantId < 1 || participantId > 40) {
+        addMsg('error', 'Participant ID must be 1-40');
+        return;
+    }
+    fetch('experiment_trials.csv').then(resp => {
+        if(!resp.ok) {
+            throw new Error('HTTP status ' + resp.status);
+        }
+        return resp.text();
+    }).then(text => {
+        let allTrials = parseExperimentTrialsCsv(text);
+        let trials = allTrials.filter(r => Number(r.participant) === participantId);
+        if(trials.length === 0) {
+            addMsg('error', 'No trials found for participant ' + participantId);
+            return;
+        }
+        trials.sort((a,b) => Number(a.Trial) - Number(b.Trial));
+        participantTrialList = trials;
+        participantTrialIndex = 0;
+        participantIdSelected = participantId;
+        document.getElementById('packing-area').classList.add('participant-mode');
+        // Update participant display
+        const participantStatus = document.getElementById('participant-status');
+        if (participantStatus) {
+            participantStatus.textContent = 'Current participant: ' + participantId;
+        }
+        const toolbarStatus = document.getElementById('participant-toolbar-status');
+        if (toolbarStatus) {
+            toolbarStatus.textContent = 'Participant: ' + participantId;
+        }
+        // addMsg('success', 'Loaded participant ' + participantId + ' with ' + trials.length + ' trials.');
+        loadParticipantTrialByIndex(0);
+    }).catch(err => {
+        addMsg('error', 'Could not load experiment_trials.csv: ' + err.message);
+    });
+}
+
+function isParticipantMode() {
+    return participantTrialList && participantTrialList.length > 0;
+}
+
+function resetParticipantMode() {
+    participantTrialList = null;
+    participantTrialIndex = -1;
+    participantIdSelected = null;
+    const pa = document.getElementById('packing-area');
+    if (pa) { pa.classList.remove('participant-mode'); }
+}
+
+function participantNextTrial() {
+    if(!isParticipantMode()) {
+        return false;
+    }
+    if(participantTrialIndex < participantTrialList.length - 1) {
+        loadParticipantTrialByIndex(participantTrialIndex + 1);
+    } else {
+        addMsg('info', 'Already at last participant trial.');
+    }
+    return true;
+}
+
+function leaveParticipantMode() {
+    resetParticipantMode();
+    // Clear participant display
+    const participantStatus = document.getElementById('participant-status');
+    if (participantStatus) {
+        participantStatus.textContent = 'No participant loaded.';
+    }
+    const toolbarStatus = document.getElementById('participant-toolbar-status');
+    if (toolbarStatus) {
+        toolbarStatus.textContent = 'No participant loaded.';
+    }
+    addMsg('info', 'Participant mode disabled: normal level navigation restored.');
+}
+
+function participantPrevTrial() {
+    if(!isParticipantMode()) {
+        return false;
+    }
+    if(participantTrialIndex > 0) {
+        loadParticipantTrialByIndex(participantTrialIndex - 1);
+    } else {
+        addMsg('info', 'Already at first participant trial.');
+    }
+    return true;
 }
 
 function createGenParamsInputs(genName, container) {
@@ -316,7 +506,7 @@ function addToolbarEventListeners() {
             }
         });
     let onlyToggleIds = ['about-button', 'zoom-button', 'auto-pack-button',
-        'export-button', 'edit-button'];
+        'participant-button', 'questionnaire-button', 'export-button', 'edit-button'];
     for(const id of onlyToggleIds) {
         document.getElementById(id).addEventListener('click', (ev) => toggleFromToolbar(id));
     }
@@ -382,6 +572,64 @@ function addExportEventListeners() {
             }
             unsetToolbar('export-button');
         });
+}
+
+// Timer box for time-limited trials
+var timerBox = document.createElement('div');
+timerBox.id = 'trial-timer-box';
+timerBox.style.position = 'absolute';
+timerBox.style.top = 'auto';
+timerBox.style.left = 'auto';
+timerBox.style.bottom = '60px';
+timerBox.style.right = '10px';
+timerBox.style.background = '#222';
+timerBox.style.color = '#fff';
+timerBox.style.padding = '0.5em 1em';
+timerBox.style.fontSize = '1.2em';
+timerBox.style.borderRadius = '8px';
+timerBox.style.zIndex = '1000';
+timerBox.style.display = 'none';
+document.body.appendChild(timerBox);
+
+var trialTimer = null;
+var trialTimerEnd = null;
+
+function stopGameAndSaveLog() {
+    if (typeof game !== 'undefined' && game !== null) {
+        timerBox.textContent = 'Time is up!';
+        // Ensure trial is finished and included in complete logs
+        if (!game.won) {
+            game.won = true;
+            // Download log with participant and trial info
+            let participant = typeof participantIdSelected !== 'undefined' ? participantIdSelected : 'unknown';
+            let trialNum = (participantTrialIndex >= 0 && participantTrialList && participantTrialList[participantTrialIndex]) ? participantTrialList[participantTrialIndex].Trial : 'unknown';
+            let filename = `packing-log-participant-${participant}-trial-${trialNum}.json`;
+            game.packingLog.downloadLog(filename);
+            game.packingLog.finishTrial(game.level.trialNumber);
+        }
+        
+    }
+}
+
+function startTrialTimer(limitSeconds) {
+    if (trialTimer) clearInterval(trialTimer);
+    trialTimerEnd = Date.now() + limitSeconds * 1000;
+    timerBox.style.display = 'block';
+    function updateTimer() {
+        if (game && game.won) {
+            clearInterval(trialTimer);
+            timerBox.style.display = 'none';
+            return;
+        }
+        var remaining = Math.max(0, Math.ceil((trialTimerEnd - Date.now()) / 1000));
+        timerBox.textContent = 'Time left: ' + remaining + 's';
+        if (remaining <= 0) {
+            clearInterval(trialTimer);
+            stopGameAndSaveLog();
+        }
+    }
+    updateTimer();
+    trialTimer = setInterval(updateTimer, 1000);
 }
 
 var menuTraversalList = [
@@ -459,6 +707,93 @@ function addExtraUIEventListeners() {
     }
     document.querySelector('#modal-group > .overlay').addEventListener('click',
         (ev) => unsetToolbar());
+
+    let questionnaireForm = document.getElementById('questionnaire-menu');
+    if (questionnaireForm) {
+        questionnaireForm.addEventListener('submit', function(ev) {
+            ev.preventDefault();
+            let formData = new FormData(questionnaireForm);
+            let response = {};
+            for (let [key, value] of formData.entries()) {
+                if (response[key]) {
+                    // support multiselect / repeated values
+                    if (!Array.isArray(response[key])) {
+                        response[key] = [response[key]];
+                    }
+                    response[key].push(value);
+                } else {
+                    response[key] = value;
+                }
+            }
+            response.submittedAt = new Date().toISOString();
+            response.level = document.getElementById('current-puzzle-label')?.textContent || null;
+
+            let stored = [];
+            try {
+                stored = JSON.parse(window.localStorage.getItem('questionnaireResponses') || '[]');
+                if (!Array.isArray(stored)) { stored = []; }
+            } catch (e) {
+                stored = [];
+            }
+            stored.push(response);
+            window.localStorage.setItem('questionnaireResponses', JSON.stringify(stored));
+
+            // Download response as JSON file (with cross-browser fallback)
+            let jsonText = JSON.stringify(response, null, 2);
+            let filename = 'questionnaire-response-' + response.submittedAt.replace(/[:.]/g, '-') + '.json';
+            let blob = new Blob([jsonText], {type: 'application/json'});
+
+            if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+                // IE/Edge legacy
+                window.navigator.msSaveOrOpenBlob(blob, filename);
+            } else {
+                let url = URL.createObjectURL(blob);
+                let anchor = document.createElement('a');
+                anchor.style.display = 'none';
+                anchor.href = url;
+                anchor.download = filename;
+                document.body.appendChild(anchor);
+
+                // Chrome/Firefox etc
+                let triggered = false;
+                try {
+                    triggered = anchor.click();
+                } catch (e) {
+                    console.warn('Download trigger failed by click, using window.open fallback', e);
+                }
+                if (!triggered) {
+                    window.open(url, '_blank');
+                }
+
+                setTimeout(function() {
+                    document.body.removeChild(anchor);
+                    URL.revokeObjectURL(url);
+                }, 200);
+            }
+
+            addMsg('success', 'Thanks for your input! Questionnaire saved locally (' + stored.length + ' total) and downloaded.');
+            unsetToolbar('questionnaire-button');
+            questionnaireForm.reset();
+            console.log('Questionnaire response saved:', response);
+        });
+    }
+
+    let participantMenu = document.getElementById('participant-menu');
+    if (participantMenu) {
+        let loadButton = document.getElementById('participant-load');
+        let participantInput = document.getElementById('participant-id');
+        if (loadButton && participantInput) {
+            loadButton.addEventListener('click', function(ev) {
+                let participantId = participantInput.value;
+                if (!participantId) {
+                    addMsg('error', 'Enter participant ID (1-40)');
+                    return;
+                }
+                loadParticipantTrials(Number(participantId));
+                unsetToolbar('participant-button');
+            });
+        }
+    }
 
     document.body.addEventListener('drop', function(ev) {
         ev.stopPropagation();
@@ -610,6 +945,10 @@ menuItems.forEach((item, index) => {
 
 
 document.getElementById('prev-level-button').addEventListener('click', () => {
+    if (isParticipantMode()) {
+        participantPrevTrial();
+        return;
+    }
     if (currentMenuIndex > 0) {
         currentMenuIndex = (currentMenuIndex - 1 + menuItems.length) % menuItems.length;
         menuItems[currentMenuIndex].click(); // simulate menu click
@@ -617,6 +956,10 @@ document.getElementById('prev-level-button').addEventListener('click', () => {
 });
 
 document.getElementById('next-level-button').addEventListener('click', () => {
+    if (isParticipantMode()) {
+        participantNextTrial();
+        return;
+    }
     if (currentMenuIndex < menuItems.length - 1) {
         currentMenuIndex = (currentMenuIndex + 1) % menuItems.length;
         menuItems[currentMenuIndex].click(); // simulate menu click

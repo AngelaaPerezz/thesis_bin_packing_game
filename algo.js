@@ -218,7 +218,8 @@ function RectComparator(item1, item2) {
 }
 
 function nfdhShelfPack(items, xLen) {
-    let sortedItems = [...items].sort(RectComparator);
+    // let sortedItems = [...items].sort(RectComparator);
+    let sortedItems = items
     return nextFitShelfPack(sortedItems, xLen);
 }
 

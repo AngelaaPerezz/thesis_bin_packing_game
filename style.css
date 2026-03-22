@@ -108,6 +108,10 @@ footer {
     flex-direction: row;
     flex-wrap: wrap;
 }
+#packing-area.participant-mode {
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
 #arena-separator {
     width: 0px;
     border: 1px solid var(--bin-outline-color);

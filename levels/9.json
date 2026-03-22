@@ -1,0 +1,101 @@
+{
+    "trialNumber": 5,
+    "binXLen": 6,
+    "binYLen": 6,
+    "gameType": "bp",
+    "rotation": false,
+    "items": [
+        {
+            "xLen": 3,
+            "yLen": 3,
+            "color": "red",
+            "n": 1
+        },
+        {
+            "xLen": 2,
+            "yLen": 3,
+            "color": "blue",
+            "n": 1
+        },
+        {
+            "xLen": 1,
+            "yLen": 3,
+            "color": "green",
+            "n": 1
+        },
+        {
+            "xLen": 5,
+            "yLen": 2,
+            "color": "orange",
+            "n": 1
+        },
+        {
+            "xLen": 1,
+            "yLen": 2,
+            "color": "purple",
+            "n": 1
+        },
+        {
+            "xLen": 5,
+            "yLen": 1,
+            "color": "yellow",
+            "n": 1
+        },
+        {
+            "xLen": 1,
+            "yLen": 1,
+            "color": "cyan",
+            "n": 1
+        }
+    ],
+    "solution": [
+        [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+        ],
+        [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+        ],
+        [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+        ],
+        [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+        ],
+        [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+        ],
+        [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+        ]
+    ]
+}

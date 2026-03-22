@@ -28,6 +28,10 @@ class PackingLog {
         this.lastEventTime = null;
         this.n_backtrackings = 0;
         this.trials = {};
+        this.placed_ids = new Set();
+        this.unplaced_ids = new Set(
+            this.game.level.items.map(item => item.id)
+         );
     }
 
     _getGridSnapshot() {
@@ -83,6 +87,9 @@ class PackingLog {
         const elapsedTime = this.game._getElapsedTime();
         const reactionTime = this.lastEventTime !== null ? elapsedTime - this.lastEventTime : null;
         
+        this.placed_ids.add(itemId);
+        this.unplaced_ids.delete(itemId);
+
         this.events.push({
             action: 'placement',
             time: timeToString(elapsedTime),
@@ -91,6 +98,8 @@ class PackingLog {
             binId: binId,
             xPos: xPos,
             yPos: yPos,
+            placed_ids:  Array.from(this.placed_ids),
+            unplaced_ids:  Array.from(this.unplaced_ids),
             n_backtrackings: this.n_backtrackings,
             binGrids: this._getGridSnapshot()
         });
@@ -101,12 +110,16 @@ class PackingLog {
     logDetach(itemId) {
         const elapsedTime = this.game._getElapsedTime();
         const reactionTime = this.lastEventTime !== null ? elapsedTime - this.lastEventTime : null;
+        this.placed_ids.delete(itemId);
+        this.unplaced_ids.add(itemId);
         this.n_backtrackings = this.n_backtrackings + 1
         this.events.push({
             action: 'unplacement',
             time: timeToString(elapsedTime),
             reactionTime: reactionTime,
             itemId: itemId,
+            placed_ids:  Array.from(this.placed_ids),
+            unplaced_ids:  Array.from(this.unplaced_ids),
             n_backtrackings: this.n_backtrackings,   
             binGrids: this._getGridSnapshot()
         });
@@ -191,6 +204,10 @@ class PackingLog {
         this.events = [];
         this.lastEventTime = null;
         this.n_backtrackings = 0;
+        this.placed_ids = new Set();
+        this.unplaced_ids = new Set(
+            this.game.level.items.map(item => item.id)
+         );
     }
 }
 
@@ -579,7 +596,10 @@ class Game {
         this.packingLog = new PackingLog(this); 
         this._setScaleFactor(scaleFactor);
         this._createItems();
-        this._createBinsAndPackItems(this.level.startPos);
+        // this._createBinsAndPackItems(this.level.startPos);
+        // Force all items to start in inventory
+        const startPos = Array(this.items.length).fill(null);
+        this._createBinsAndPackItems(startPos);
         this._refreshStatsDom();
         repopulateSolutionsMenu(this.level.solutions);
         repopulateAutoPackMenu();
@@ -676,8 +696,8 @@ class Game {
             else {
                 changeFunc();
             }
-            this._assessBins();
             this.packingLog.logDetach(itemId);
+            this._assessBins();
         }
     }
 
@@ -709,8 +729,8 @@ class Game {
             else {
                 changeFunc();
             }
-            this._assessBins();
             this.packingLog.logAttach(itemId, binId, xPos, yPos);
+            this._assessBins();
             return true;
         }
         else {
@@ -1060,15 +1080,21 @@ class Game {
         }
         this._refreshStatsDom();
         if(!this.won) {
-            if(this.packedStats.count === this.items.length && used <= lb) {
+            const allItemsPacked = this.items.every(item => item.binUI !== null);
+            if(allItemsPacked && used <= lb) {
                 this.won = true;
-                this.packingLog.finishTrial(this.level.trialNumber);
                 this.endTime = Date.now();
+                // Download log with participant and trial info
+                let participant = typeof window.participantIdSelected !== 'undefined' ? window.participantIdSelected : 'unknown';
+                let trialNum = (typeof window.participantTrialIndex !== 'undefined' && window.participantTrialIndex >= 0 && window.participantTrialList && window.participantTrialList[window.participantTrialIndex]) ? window.participantTrialList[window.participantTrialIndex].Trial : 'unknown';
+                let filename = `packing-log-participant-${participant}-trial-${trialNum}.json`;
+                this.packingLog.downloadLog(filename);
+                this.packingLog.finishTrial(this.level.trialNumber);
                 window.setTimeout(showCelebration, 100);
-
-            }
+        
         }
         return binTypes;
+        }
     }
 
     _invalidateHistory() {
@@ -1208,16 +1234,18 @@ class Game {
         }
     }
 
+
+    // ORIGINAL FUNCTION
     _computeInventoryDimsAndItemHomePositions(origInvXLen=null) {
         let rawItems = this.level.items;
-        let maxXLen = this.level.binXLen;
+        let maxXLen =8;
         let area = 0;
         for(let item of rawItems) {
             maxXLen = Math.max(maxXLen, item.xLen);
             area += item.xLen * item.yLen;
         }
         if(origInvXLen === null) {
-            origInvXLen = Math.floor(Math.sqrt(area));
+            origInvXLen = 4;
         }
         if(origInvXLen < maxXLen) {
             origInvXLen = maxXLen;
@@ -1375,6 +1403,7 @@ class Game {
         clearInterval(this.timerId);
     }
 }
+
 
 function timeToString(delta) {
     var ds = Math.floor(delta / 100);
