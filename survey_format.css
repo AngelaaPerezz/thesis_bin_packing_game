@@ -1,0 +1,107 @@
+/* Ensure survey buttons always match and override other button styles */
+.survey-ui .survey-btn {
+    min-width: 120px;
+    text-align: center;
+    display: inline-block;
+    padding: 12px 28px;
+    margin: 8px 6px 0 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    background: #000000;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(76,139,245,0.08);
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+/* Make submit and prev buttons the same width */
+.survey-btn {
+    min-width: 120px;
+    text-align: center;
+    display: inline-block;
+    padding: 12px 28px;
+    margin: 8px 6px 0 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    background: #000000;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(76,139,245,0.08);
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+.survey-btn:hover, .survey-btn:focus {
+    background: #2d2e2f;
+    box-shadow: 0 4px 16px rgba(76,139,245,0.15);
+}
+.survey-btn:active {
+    background: #2d2e2f;
+}
+.survey-ui {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background: #f4f6f8;
+    padding: 40px;
+}
+
+.survey-ui .survey-card {
+    max-width: 720px;
+    padding: 42px;
+    margin: 40px auto;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.survey-ui .survey-intro {
+    margin-bottom: 25px;
+    color: #555;
+}
+
+.survey-ui .input-pair {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 52px;
+}
+
+.survey-ui .input-pair > label {
+    font-weight: 600;
+}
+
+.survey-ui input[type="radio"] {
+    margin: 0;
+}
+
+.survey-ui input[type="number"],
+.survey-ui input[type="text"] {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid #dcdfe4;
+    font-size: 15px;
+}
+
+.survey-ui input:focus {
+    outline: none;
+    border-color: #4c8bf5;
+    box-shadow: 0 0 0 3px rgba(76,139,245,0.15);
+}
+
+.survey-ui .radio-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.survey-ui .radio-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #e4e7ec;
+    background: white;
+}

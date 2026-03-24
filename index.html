@@ -6,6 +6,7 @@
 <meta name="description" content="A 2D geometric bin-packing game that runs in the browser. You have to pack all rectangles from the left side into the minimum number of bins on the right side." />
 <title>Packing game</title>
 <link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="survey_format.css" />
 <script defer src="game-logic.js"></script>
 <script defer src="game-io.js"></script>
 <script defer src="algo.js"></script>
@@ -144,6 +145,36 @@
                 <input type="radio" id="edit-radio-item-drag" name="edit-item" value="drag" checked/>
                 <label for="edit-radio-item-drag">drag</label>
             </div>
+            </form>
+            <script>
+            // Multi-page survey navigation logic
+            document.addEventListener('DOMContentLoaded', function() {
+                const pages = Array.from(document.querySelectorAll('.survey-page'));
+                let currentPage = 0;
+                function showPage(idx) {
+                    pages.forEach((page, i) => {
+                        page.style.display = (i === idx) ? '' : 'none';
+                    });
+                }
+                showPage(currentPage);
+                document.querySelectorAll('.next-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        if (currentPage < pages.length - 1) {
+                            currentPage++;
+                            showPage(currentPage);
+                        }
+                    });
+                });
+                document.querySelectorAll('.prev-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        if (currentPage > 0) {
+                            currentPage--;
+                            showPage(currentPage);
+                        }
+                    });
+                });
+            });
+            </script>
             <div class="input-pair">
                 <input type="radio" id="edit-radio-item-delete" name="edit-item" value="delete" />
                 <label for="edit-radio-item-delete">delete</label>
@@ -268,95 +299,206 @@ and documentation.</p>
         </div>
         <div id="participant-status" style="margin-top: 1em; text-align: center; color: #555; font-size: 1em;">No participant loaded.</div>
     </form>
-    <form id="questionnaire-menu" class="menu disabled">
 
-<header>
-    <div class="heading">Post-experiment questionnaire</div>
-    <div class="close-btn"></div>
-</header>
+<form id="questionnaire-menu" class="menu disabled">
 
-<div class="options menu-body">
+    <header>
+        <div class="heading">Post-experiment questionnaire</div>
+        <div class="close-btn"></div>
+    </header>
 
-<p>Please answer the questions below and click Submit.</p>
+    <div class="options menu-body">
 
-<div class="input-pair">
-    <label for="age">What is your age (in years)?</label>
-    <input id="age" name="age" type="number" placeholder="e.g. 23" />
-</div>
-
-<div class="input-pair">
-    <label>Gender</label>
-    <div class="button-group">
-        <input type="radio" id="g-man" name="gender" value="man"><label for="g-man">Man</label>
-        <input type="radio" id="g-woman" name="gender" value="woman"><label for="g-woman">Woman</label>
-        <input type="radio" id="g-nb" name="gender" value="nonbinary"><label for="g-nb">Non-binary</label>
-        <input type="radio" id="g-na" name="gender" value="noanswer"><label for="g-na">Prefer not to answer</label>
+        <div class="survey-ui">
+            <div class="survey-card">
+                <!-- Removed nested form -->
+                    <!-- Page 1: Demographics -->
+                    <div class="survey-page" data-page="0">
+                        <p class="survey-intro">Please answer the questions below and click Next.</p>
+                        <h2 class="survey-section-title">Demographics</h2>
+                        <div class="input-pair">
+                            <label for="age">What is your age (in years)?</label>
+                            <input id="age" name="age" type="number" placeholder="e.g. 23" />
+                        </div>
+                        <div class="input-pair">
+                            <label>What gender do you self-identify as?</label>
+                            <div class="radio-group">
+                                <label class="radio-option"><input type="radio" name="gender" value="man"><span>Man</span></label>
+                                <label class="radio-option"><input type="radio" name="gender" value="woman"><span>Woman</span></label>
+                                <label class="radio-option"><input type="radio" name="gender" value="nonbinary"><span>Non-binary</span></label>
+                                <label class="radio-option"><input type="radio" name="gender" value="noanswer"><span>Prefer not to answer</span></label>
+                            </div>
+                            <input name="gender_other" type="text" placeholder="Prefer to self-describe…" />
+                        </div>
+                        <div class="input-pair">
+                            <label>What is the highest degree that you have already completed / finished? </label>
+                            <div class="radio-group">
+                                <label class="radio-option"><input type="radio" name="degree" value="hs"><span>High school</span></label>
+                                <label class="radio-option"><input type="radio" name="degree" value="ba"><span>Bachelor</span></label>
+                                <label class="radio-option"><input type="radio" name="degree" value="ma"><span>Master</span></label>
+                                <label class="radio-option"><input type="radio" name="degree" value="phd"><span>PhD</span></label>
+                            </div>
+                            <input name="degree_other" type="text" placeholder="Other degree…" />
+                        </div>
+                        <div class="input-pair">
+                            <label>If you chose university degree, to which faculty did your degree belong?</label>
+                            <div class="radio-group">
+                                <label class="radio-option"><input type="radio" name="faculty" value="geosciences"><span>Faculty of Geosciences</span></label>
+                                <label class="radio-option"><input type="radio" name="faculty" value="humanities"><span>Faculty of Humanities</span></label>
+                                <label class="radio-option"><input type="radio" name="faculty" value="law_economics_governance"><span>Faculty of Law, Economics and Governance</span></label>
+                                <label class="radio-option"><input type="radio" name="faculty" value="medical_sciences"><span>Faculty of Medical Sciences</span></label>
+                                <label class="radio-option"><input type="radio" name="faculty" value="science"><span>Faculty of Science</span></label>
+                                <label class="radio-option"><input type="radio" name="faculty" value="social_behavioural_sciences"><span>Faculty of Social and Behavioural Sciences</span></label>
+                                <label class="radio-option"><input type="radio" name="faculty" value="veterinary_medicine"><span>Faculty of Veterinary Medicine</span></label>
+                                <label class="radio-option"><input type="radio" name="faculty" value="liberal_arts_sciences"><span>University College (Liberal Arts and Sciences)</span></label>
+                            </div>
+                            <input name="faculty_other" type="text" placeholder="Other, namely…" />
+                        </div>
+                        <div class="input-pair">
+                            <label>If you selected Liberal Arts and Sciences, please specify your: </label>
+                            <input name="major" type="text" placeholder="Major: " />
+                            <input name="minor" type="text" placeholder="Minor (if applicable): " />
+                        </div>
+                        <div class="input-pair">
+                            <label>Is your vision normal or corrected-to-normal (i.e. by wearing glasses or contact lenses)?</label>
+                            <div class="radio-group">
+                                <label class="radio-option"><input type="radio" name="vision" value="normal"><span>Normal vision</span></label>
+                                <label class="radio-option"><input type="radio" name="vision" value="corrected"><span>Corrected-to-normal</span></label>
+                            </div>
+                            <input name="vision_other" type="text" placeholder="Other…" />
+                        </div>
+                        <button type="button" class="next-btn survey-btn">Next</button>
+                    </div>
+                    <!-- Page 2: Prior experience -->
+                    <div class="survey-page" data-page="1" style="display:none">
+                        <h2 class="survey-section-title">Prior experience</h2>
+                        <p class="survey-section-text">In the experiment, you just played the “bin-packing” game. To what extent do you agree or disagree with the following statements?</p>
+                        <div class="input-pair">
+                            <label>“I was familiar with the bin-packing task before doing this experiment”</label>
+                            <div class="radio-group">
+                                <label class="radio-option"><input type="radio" name="familiarity" value="completely_disagree"><span>Completely disagree</span></label>
+                                <label class="radio-option"><input type="radio" name="familiarity" value="disagree"><span>Disagree</span></label>
+                                <label class="radio-option"><input type="radio" name="familiarity" value="neither"><span>Neither</span></label>
+                                <label class="radio-option"><input type="radio" name="familiarity" value="agree"><span>Agree</span></label>
+                                <label class="radio-option"><input type="radio" name="familiarity" value="completely_agree"><span>Completely agree</span></label>
+                            </div>
+                            <input name="familiarity_similar_games" type="text" placeholder="If applicable — name the games/puzzles…" />
+                        </div>
+                        <div class="input-pair">
+                            <label>“I have played games/puzzles similar to the bin-packing task”</label>
+                            <div class="radio-group">
+                                <label class="radio-option"><input type="radio" name="puzzle_exp" value="never"><span>Never</span></label>
+                                <label class="radio-option"><input type="radio" name="puzzle_exp" value="rarely"><span>Rarely</span></label>
+                                <label class="radio-option"><input type="radio" name="puzzle_exp" value="sometimes"><span>Sometimes</span></label>
+                                <label class="radio-option"><input type="radio" name="puzzle_exp" value="often"><span>Often</span></label>
+                                <label class="radio-option"><input type="radio" name="puzzle_exp" value="veryoften"><span>Very often</span></label>
+                            </div>
+                            <input name="puzzle_exp_description" type="text" placeholder="If applicable - please describe/name the game(s)/puzzle(s) you played, to the best of your ability:" />
+                        </div>
+                        <div class="input-pair">
+                            <label>How frequently do you currently play game(s)/puzzle(s) similar to the bin-packing task?</label>
+                            <input name="frequency_of_playing" type="text" placeholder="E.g. once per week" />
+                        </div>
+                        <div class="input-pair">
+                            <label>If you don’t play such game(s)/puzzle(s) anymore, how often did you play them in the past? </label>
+                            <input name="past_frequency_of_playing" type="text" placeholder="E.g. once per week" />
+                        </div>
+                        <div class="input-pair">
+                            <label>How long ago was this (answer in months or years)?</label>
+                            <input name="time_since_play" type="text" placeholder="E.g. 6 months ago" />
+                        </div>
+                        <div class="input-pair">
+                            <label>“I understand what combinatorial optimisation problems are and could name or recognise common examples”</label>
+                            <div class="radio-group">
+                                <label class="radio-option"><input type="radio" name="combinatorial_understanding" value="completely disagree"><span>Completely disagree</span></label>
+                                <label class="radio-option"><input type="radio" name="combinatorial_understanding" value="disagree"><span>Disagree</span></label>
+                                <label class="radio-option"><input type="radio" name="combinatorial_understanding" value="neither"><span>Neither</span></label>
+                                <label class="radio-option"><input type="radio" name="combinatorial_understanding" value="agree"><span>Agree</span></label>
+                                <label class="radio-option"><input type="radio" name="combinatorial_understanding" value="completely agree"><span>Completely agree</span></label>
+                            </div>
+                        </div>
+                        <p class="survey-section-text">If previously answered "Agree", "Completely agree" or "Neither", please specify the problems you have experience with:</p>
+                        <div class="input-pair">
+                            <label>“I have experience completing combinatorial optimisation problems” (e.g. knapsack problem, travelling salesperson problem, or others)</label>
+                            <div class="radio-group">
+                                <label class="radio-option"><input type="radio" name="combinatorial_experience" value="completely disagree"><span>Completely disagree</span></label>
+                                <label class="radio-option"><input type="radio" name="combinatorial_experience" value="disagree"><span>Disagree</span></label>
+                                <label class="radio-option"><input type="radio" name="combinatorial_experience" value="neither"><span>Neither</span></label>
+                                <label class="radio-option"><input type="radio" name="combinatorial_experience" value="agree"><span>Agree</span></label>
+                                <label class="radio-option"><input type="radio" name="combinatorial_experience" value="completely agree"><span>Completely agree</span></label>
+                            </div>
+                        </div>
+                        <div class="input-pair">
+                            <label>“I am aware that often heuristic approaches are used in solving combinatorial optimisation problems”</label>
+                            <div class="radio-group">
+                                <label class="radio-option"><input type="radio" name="heuristic_awareness" value="completely disagree"><span>Completely disagree</span></label>
+                                <label class="radio-option"><input type="radio" name="heuristic_awareness" value="disagree"><span>Disagree</span></label>
+                                <label class="radio-option"><input type="radio" name="heuristic_awareness" value="neither"><span>Neither</span></label>
+                                <label class="radio-option"><input type="radio" name="heuristic_awareness" value="agree"><span>Agree</span></label>
+                                <label class="radio-option"><input type="radio" name="heuristic_awareness" value="completely agree"><span>Completely agree</span></label>
+                            </div>
+                        </div>
+                        <div class="input-pair">
+                            <label>“I am certain that I know what an algorithm is”</label>
+                            <div class="radio-group">
+                                <label class="radio-option"><input type="radio" name="algorithm_certainty" value="completely disagree"><span>Completely disagree</span></label>
+                                <label class="radio-option"><input type="radio" name="algorithm_certainty" value="disagree"><span>Disagree</span></label>
+                                <label class="radio-option"><input type="radio" name="algorithm_certainty" value="neither"><span>Neither</span></label>
+                                <label class="radio-option"><input type="radio" name="algorithm_certainty" value="agree"><span>Agree</span></label>
+                                <label class="radio-option"><input type="radio" name="algorithm_certainty" value="completely agree"><span>Completely agree</span></label>
+                            </div>
+                        </div>
+                        <div class="input-pair">
+                            <label>“I am familiar with the concept of NP-hardness”</label>
+                            <div class="radio-group">
+                                <label class="radio-option"><input type="radio" name="np_hardness_familiarity" value="completely disagree"><span>Completely disagree</span></label>
+                                <label class="radio-option"><input type="radio" name="np_hardness_familiarity" value="disagree"><span>Disagree</span></label>
+                                <label class="radio-option"><input type="radio" name="np_hardness_familiarity" value="neither"><span>Neither</span></label>
+                                <label class="radio-option"><input type="radio" name="np_hardness_familiarity" value="agree"><span>Agree</span></label>
+                                <label class="radio-option"><input type="radio" name="np_hardness_familiarity" value="completely agree"><span>Completely agree</span></label>
+                            </div>
+                        </div>
+                        <div class="input-pair">
+                            <label>What is the highest level at which you have studied or are studying a maths-based subject?</label>
+                            <div class="radio-group">
+                                <label class="radio-option"><input type="radio" name="maths_level" value="highschool"><span>High school level</span></label>
+                                <label class="radio-option"><input type="radio" name="maths_level" value="bachelor"><span>Bachelor’s degree level</span></label>
+                                <label class="radio-option"><input type="radio" name="maths_level" value="master"><span>Master’s degree level</span></label>
+                                <label class="radio-option"><input type="radio" name="maths_level" value="phd"><span>PhD or post-doctorate degree level</span></label>
+                            </div>
+                            <input name="maths_level_other" type="text" placeholder="Other, namely" />
+                        </div>
+                        <button type="button" class="prev-btn survey-btn">Previous</button>
+                        <button type="button" class="next-btn survey-btn">Next</button>
+                    </div>
+                    <!-- Page 3: Task reflection -->
+                    <div class="survey-page" data-page="2" style="display:none">
+                        <h2 class="survey-section-title">Task reflection</h2>
+                        <div class="input-pair">
+                            <label>How well do you think you performed in the task?</label>
+                            <div class="radio-group">
+                                <label class="radio-option"><input type="radio" name="performance" value="vpoor"><span>Very poorly</span></label>
+                                <label class="radio-option"><input type="radio" name="performance" value="poor"><span>Poorly</span></label>
+                                <label class="radio-option"><input type="radio" name="performance" value="neutral"><span>Neutral</span></label>
+                                <label class="radio-option"><input type="radio" name="performance" value="well"><span>Well</span></label>
+                                <label class="radio-option"><input type="radio" name="performance" value="vwell"><span>Very well</span></label>
+                            </div>
+                        </div>
+                        <div class="input-pair">
+                            <label>Was there a general strategy or thought process you used to solve the puzzles? If yes, what was it?</label>
+                            <input name="general_strategy" type="text" placeholder="Describe your thought process…" />
+                        </div>
+                        <div class="input-pair">
+                            <label>Any further remarks?</label>
+                            <input name="remarks" type="text" placeholder="Your comments…" />
+                        </div>
+                        <button type="button" class="prev-btn survey-btn">Previous</button>
+                        <button id="questionnaire-submit" type="submit" class="survey-btn">Submit</button>
+                    </div>
+                <!-- End survey content -->
+            </div>
+        </div>
     </div>
-    <input name="gender_other" type="text" placeholder="Prefer to self-describe…" />
-</div>
-
-<div class="input-pair">
-    <label>Highest completed degree</label>
-    <div class="button-group">
-        <input type="radio" id="deg-hs" name="degree" value="hs"><label for="deg-hs">High school</label>
-        <input type="radio" id="deg-ba" name="degree" value="ba"><label for="deg-ba">Bachelor</label>
-        <input type="radio" id="deg-ma" name="degree" value="ma"><label for="deg-ma">Master</label>
-        <input type="radio" id="deg-phd" name="degree" value="phd"><label for="deg-phd">PhD</label>
-    </div>
-    <input name="degree_other" type="text" placeholder="Other degree…" />
-</div>
-
-<div class="input-pair">
-    <label>Vision</label>
-    <div class="button-group">
-        <input type="radio" id="vis-norm" name="vision" value="normal"><label for="vis-norm">Normal</label>
-        <input type="radio" id="vis-corr" name="vision" value="corrected"><label for="vis-corr">Corrected-to-normal</label>
-    </div>
-    <input name="vision_other" type="text" placeholder="Other…" />
-</div>
-
-<div class="input-pair">
-    <label>Have you played similar puzzles?</label>
-    <div class="button-group">
-        <input type="radio" id="p-never" name="puzzle_exp" value="never"><label for="p-never">Never</label>
-        <input type="radio" id="p-rare" name="puzzle_exp" value="rarely"><label for="p-rare">Rarely</label>
-        <input type="radio" id="p-some" name="puzzle_exp" value="sometimes"><label for="p-some">Sometimes</label>
-        <input type="radio" id="p-often" name="puzzle_exp" value="often"><label for="p-often">Often</label>
-        <input type="radio" id="p-voften" name="puzzle_exp" value="veryoften"><label for="p-voften">Very often</label>
-    </div>
-    <input name="puzzle_games" type="text" placeholder="If applicable — name the games/puzzles…" />
-</div>
-
-<div class="input-pair">
-    <label>How frequently do you currently play such games?</label>
-    <input name="current_play" type="text" placeholder="e.g. once per week" />
-</div>
-
-<div class="input-pair">
-    <label>How well do you think you performed?</label>
-    <div class="button-group">
-        <input type="radio" id="perf-vpoor" name="performance" value="vpoor"><label for="perf-vpoor">Very poorly</label>
-        <input type="radio" id="perf-poor" name="performance" value="poor"><label for="perf-poor">Poorly</label>
-        <input type="radio" id="perf-neu" name="performance" value="neutral"><label for="perf-neu">Neutral</label>
-        <input type="radio" id="perf-well" name="performance" value="well"><label for="perf-well">Well</label>
-        <input type="radio" id="perf-vwell" name="performance" value="vwell"><label for="perf-vwell">Very well</label>
-    </div>
-</div>
-
-<div class="input-pair">
-    <label>What general strategy did you use?</label>
-    <input name="strategy" type="text" placeholder="Describe your thought process…" />
-</div>
-
-<div class="input-pair">
-    <label>Any further remarks?</label>
-    <input name="remarks" type="text" placeholder="Your comments…" />
-</div>
-
-</div>
-
-<button id="questionnaire-submit" type="submit">Submit</button>
-
 </form>
 
     

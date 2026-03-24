@@ -1,3 +1,7 @@
+/* Make participant-toolbar-status text black for visibility */
+#participant-toolbar-status {
+    color: #111 !important;
+}
 html {
     height: 100%;
     font-family: sans-serif;
@@ -530,7 +534,8 @@ button[type="submit"] {
     pointer-events: auto;
     background-color: hsla(0, 0%, 10%, 0.8);
 }
-#modal-group > .menu {
+/* Enable pointer events for both div.menu and form.menu inside modal-group */
+#modal-group > .menu, #modal-group > form.menu {
     z-index: 2010;
     pointer-events: auto;
     box-shadow: var(--large-shadow);

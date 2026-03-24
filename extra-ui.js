@@ -81,6 +81,29 @@ window.addEventListener('DOMContentLoaded', function() {
         // No querystring or missing srctype, load participant 1 trial 1
         loadParticipantTrials(1);
     }
+
+    // Survey page navigation logic
+    const pages = document.querySelectorAll('.survey-page');
+    if (pages.length > 0) {
+        let currentPage = 0;
+        function showPage(idx) {
+            pages.forEach((pg, i) => {
+                pg.style.display = (i === idx) ? '' : 'none';
+            });
+            currentPage = idx;
+        }
+        document.querySelectorAll('.next-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (currentPage < pages.length - 1) showPage(currentPage + 1);
+            });
+        });
+        document.querySelectorAll('.prev-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (currentPage > 0) showPage(currentPage - 1);
+            });
+        });
+        showPage(0);
+    }
 });
 
 function toggleFromToolbar(buttonId) {
