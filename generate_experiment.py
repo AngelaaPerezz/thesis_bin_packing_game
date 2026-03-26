@@ -1,6 +1,14 @@
 import random
 import pandas as pd
 import numpy as np
+from pathlib import Path
+
+def create_participant_dirs(base_path, n_participants=40):
+    base = Path(base_path)
+    
+    for i in range(1, n_participants + 1):
+        participant_dir = base / f"participant_{i}"
+        participant_dir.mkdir(parents=True, exist_ok=True)
 
 
 def generate_experiment():
@@ -85,8 +93,33 @@ def reorder_participants(df, max_block=3):
     df_new = pd.concat(dfs, ignore_index=True)
 
     return df_new
+
+def sample_trials_per_condition(df, seed=None):
+    """
+    For each participant, randomly sample one trial from each condition (A,B,C,D).
+    Returns dataframe with 4 trials per participant.
+    """
+    
+    if seed is not None:
+        df = df.sample(frac=1, random_state=seed)  # shuffle for reproducibility
+    
+    sampled = (
+        df
+        .groupby(['participant', 'condition'], group_keys=False)
+        .apply(lambda x: x.sample(n=1, random_state=seed))
+        .sort_values(['participant', 'condition'])
+        .reset_index(drop=True)
+    )
+    
+    return sampled
 if __name__ == "__main__":
     # generate_experiment()
     df = pd.read_csv("experiment_trials.csv")
-    df['Trial'] = df.groupby('participant').cumcount() + 1
-    df.to_csv("experiment_trials.csv", index=False)
+    # df['Trial'] = df.groupby('participant').cumcount() + 1
+    # df.to_csv("experiment_trials.csv", index=False)
+    # sampled_df = sample_trials_per_condition(df, seed=42)
+    # print(sampled_df)
+    # sampled_df.to_csv("selected_picture_trials.csv", index=False)
+    
+    # Example usage
+    create_participant_dirs("experiment_data")

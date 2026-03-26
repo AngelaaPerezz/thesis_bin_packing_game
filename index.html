@@ -492,6 +492,33 @@ and documentation.</p>
                             <label>Any further remarks?</label>
                             <input name="remarks" type="text" placeholder="Your comments…" />
                         </div>
+                        <!-- Picture-based questions will be inserted here -->
+                        <div id="picture-questions-anchor">
+                            <p>The following are pictures of 4 puzzles that you encountered during the experiment. Please recall, 
+                                to the best of your ability, what your strategy or thought process was to solve each puzzle.</p>
+                            <!-- Sample static questions as fallback/example -->
+                            <div class="input-pair">
+                                <label>Puzzle 1:</label>
+                                <img src="pictures/participant_1/picture_1.png" alt="Sample Picture 1" class="survey-image" />
+                                <input name="puzzle_1_strategy" type="text" placeholder="Describe your thought process…" />
+                            </div>
+                            <div class="input-pair">
+                                <label>Puzzle 2:</label>
+                                <img src="pictures/participant_1/picture_2.png" alt="Sample Picture 2" class="survey-image" />
+                                <input name="puzzle_2_strategy" type="text" placeholder="Describe your thought process…" />
+                            </div>
+                            <div class="input-pair">
+                                <label>Puzzle 3:</label>
+                                <img src="pictures/participant_1/picture_3.png" alt="Sample Picture 3" class="survey-image" />
+                                <input name="puzzle_3_strategy" type="text" placeholder="Describe your thought process…" />
+                            </div>
+                            <div class="input-pair">
+                                <label>Puzzle 4:</label>
+                                <img src="pictures/participant_1/picture_4.png" alt="Sample Picture 4" class="survey-image" />
+                                <input name="puzzle_4_strategy" type="text" placeholder="Describe your thought process…" />
+                                </select>
+                            </div>
+                        </div>
                         <button type="button" class="prev-btn survey-btn">Previous</button>
                         <button id="questionnaire-submit" type="submit" class="survey-btn">Submit</button>
                     </div>

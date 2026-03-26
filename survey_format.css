@@ -1,3 +1,15 @@
+/* Consistent sizing for survey images */
+.survey-ui .survey-image {
+    width: 300px !important;
+    height: auto !important;
+    display: block;
+    margin: 16px 0;
+    object-fit: contain;
+}
+/* Add extra space between each question block */
+.survey-ui .input-pair {
+    margin-bottom: 40px !important;
+}
 /* Ensure survey buttons always match and override other button styles */
 .survey-ui .survey-btn {
     min-width: 120px;
@@ -63,8 +75,8 @@
 .survey-ui .input-pair {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    margin-bottom: 52px;
+    gap: 10px;
+    margin-bottom: 70px;
 }
 
 .survey-ui .input-pair > label {

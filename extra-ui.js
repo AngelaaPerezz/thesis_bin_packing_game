@@ -104,6 +104,52 @@ window.addEventListener('DOMContentLoaded', function() {
         });
         showPage(0);
     }
+
+    // Dynamically insert picture questions for the current participant
+    function insertPictureQuestions(participantId) {
+        const anchor = document.getElementById('picture-questions-anchor');
+        if (!anchor) return;
+        anchor.innerHTML = '';
+        if (!participantId) return;
+        // Add introduction paragraph in bold
+        const intro = document.createElement('p');
+        intro.className = 'survey-section-text';
+        intro.textContent = 'The following are pictures of 4 puzzles that you encountered during the experiment. Please recall, to the best of your ability, what your strategy or thought process was to solve each puzzle.';
+        anchor.appendChild(intro);
+        for (let i = 1; i <= 4; i++) {
+            const div = document.createElement('div');
+            div.className = 'input-pair';
+            const label = document.createElement('label');
+            label.textContent = `Puzzle ${i}:`;
+            const img = document.createElement('img');
+            img.src = `pictures/participant_${participantId}/picture_${i}.png`;
+            img.alt = `Participant ${participantId} Picture ${i}`;
+            img.className = 'survey-image';
+            const input = document.createElement('input');
+            input.name = `puzzle_${i}_strategy`;
+            input.type = 'text';
+            input.placeholder = 'Describe your thought process…';
+            div.appendChild(label);
+            div.appendChild(img);
+            div.appendChild(input);
+            anchor.appendChild(div);
+        }
+    }
+
+    // When participant is loaded, insert picture questions
+    window.insertPictureQuestions = insertPictureQuestions;
+
+    // Allow pressing Enter in participant ID input to trigger Load participant
+    const participantInput = document.getElementById('participant-id');
+    const participantLoadBtn = document.getElementById('participant-load');
+    if (participantInput && participantLoadBtn) {
+        participantInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                participantLoadBtn.click();
+            }
+        });
+    }
 });
 
 function toggleFromToolbar(buttonId) {
@@ -143,7 +189,45 @@ function parseExperimentTrialsCsv(csvText) {
     return rows;
 }
 
+
+// Modified to support practice trial
 function loadParticipantTrialByIndex(index) {
+    // If index is -1, show the practice trial
+    if (index === -1) {
+        participantTrialIndex = -1;
+        const stimulusFile = 'experiment_puzzles/final_selection/practice-trial.json';
+        modalGroup.classList.add('loading');
+        fetch(stimulusFile)
+            .then(resp => {
+                if (!resp.ok) throw new Error('HTTP status ' + resp.status);
+                return resp.json();
+            })
+            .then(level => {
+                loadGameFromRawLevel(level, null,
+                    function() {
+                        modalGroup.classList.remove('loading');
+                        if (typeof game !== 'undefined' && game !== null) {
+                            game.won = false;
+                            game.putBack();
+                        }
+                        // Label as Practice Trial
+                        updateCurrentPuzzle('Practice');
+                        timerBox.style.display = 'none';
+                        if (trialTimer) clearInterval(trialTimer);
+                    },
+                    function(err) {
+                        modalGroup.classList.remove('loading');
+                        addMsg('error', 'Could not load practice trial: ' + err);
+                    }
+                );
+            })
+            .catch(err => {
+                modalGroup.classList.remove('loading');
+                addMsg('error', 'Could not load practice trial file: ' + stimulusFile + ' ; ' + err);
+            });
+        return;
+    }
+    // Otherwise, show the real trials as before
     if(!participantTrialList || index < 0 || index >= participantTrialList.length) {
         addMsg('error', 'Announced participant trial index invalid: ' + index);
         return;
@@ -155,20 +239,16 @@ function loadParticipantTrialByIndex(index) {
         addMsg('error', 'Stimulus value in trial is not a number: ' + trial.stimulus);
         return;
     }
-
     const stimulusFile = 'experiment_puzzles/final_selection/' + String(stimulus).padStart(3, '0') + '.json';
     var cond = (trial.condition || '').toUpperCase();
     modalGroup.classList.add('loading');
-    // Fetch the puzzle JSON, adjust bin size if needed, then load
     fetch(stimulusFile)
         .then(resp => {
             if (!resp.ok) throw new Error('HTTP status ' + resp.status);
             return resp.json();
         })
         .then(level => {
-            // Dynamically import the bin size logic if not already loaded
             if (cond === 'A' || cond === 'C') {
-                // Inline logic to avoid import issues
                 if (Array.isArray(level.bins)) {
                     for (let bin of level.bins) {
                         bin.xLen = (bin.xLen || 0) + 1;
@@ -187,7 +267,6 @@ function loadParticipantTrialByIndex(index) {
                         game.putBack();
                     }
                     updateCurrentPuzzle(trial.Trial);
-                    // Timer logic for A/B/C/D conditions
                     if (cond === 'A' || cond === 'B') {
                         startTrialTimer(60);
                     } else if (cond === 'C' || cond === 'D') {
@@ -229,8 +308,10 @@ function loadParticipantTrials(participantId) {
         }
         trials.sort((a,b) => Number(a.Trial) - Number(b.Trial));
         participantTrialList = trials;
-        participantTrialIndex = 0;
+        participantTrialIndex = -1; // Start at practice trial
         participantIdSelected = participantId;
+        // Insert picture questions for this participant
+        insertPictureQuestions(participantId);
         document.getElementById('packing-area').classList.add('participant-mode');
         // Update participant display
         const participantStatus = document.getElementById('participant-status');
@@ -242,7 +323,7 @@ function loadParticipantTrials(participantId) {
             toolbarStatus.textContent = 'Participant: ' + participantId;
         }
         // addMsg('success', 'Loaded participant ' + participantId + ' with ' + trials.length + ' trials.');
-        loadParticipantTrialByIndex(0);
+        loadParticipantTrialByIndex(-1); // Show practice trial first
     }).catch(err => {
         addMsg('error', 'Could not load experiment_trials.csv: ' + err.message);
     });
@@ -260,11 +341,15 @@ function resetParticipantMode() {
     if (pa) { pa.classList.remove('participant-mode'); }
 }
 
+
 function participantNextTrial() {
     if(!isParticipantMode()) {
         return false;
     }
-    if(participantTrialIndex < participantTrialList.length - 1) {
+    // If currently at practice trial, go to first real trial
+    if(participantTrialIndex === -1) {
+        loadParticipantTrialByIndex(0);
+    } else if(participantTrialIndex < participantTrialList.length - 1) {
         loadParticipantTrialByIndex(participantTrialIndex + 1);
     } else {
         addMsg('info', 'Already at last participant trial.');
@@ -286,14 +371,18 @@ function leaveParticipantMode() {
     addMsg('info', 'Participant mode disabled: normal level navigation restored.');
 }
 
+
 function participantPrevTrial() {
     if(!isParticipantMode()) {
         return false;
     }
-    if(participantTrialIndex > 0) {
+    // If currently at first real trial, go back to practice trial
+    if(participantTrialIndex === 0) {
+        loadParticipantTrialByIndex(-1);
+    } else if(participantTrialIndex > 0) {
         loadParticipantTrialByIndex(participantTrialIndex - 1);
     } else {
-        addMsg('info', 'Already at first participant trial.');
+        addMsg('info', 'Already at practice trial.');
     }
     return true;
 }
