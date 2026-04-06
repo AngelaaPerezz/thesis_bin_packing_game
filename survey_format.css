@@ -79,8 +79,43 @@
     margin-bottom: 70px;
 }
 
+/* Only for consent form: align checkbox and label horizontally */
+.consent-survey-page .input-pair {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+.consent-survey-page .input-pair input[type="checkbox"] {
+    width: auto;
+    margin-right: 0.5em;
+}
+.consent-survey-page .input-pair label {
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Special case: checkbox and label inline for consent */
+.survey-ui .input-pair input[type="checkbox"] + label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 0.5em;
+}
+.survey-ui .input-pair input[type="checkbox"] {
+    display: inline-block;
+    width: auto;
+    margin-right: 0.5em;
+}
+.survey-ui .input-pair {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
 .survey-ui .input-pair > label {
     font-weight: 600;
+    margin-bottom: 0px;
+    align-self: flex-start;
 }
 
 .survey-ui input[type="radio"] {
@@ -94,6 +129,17 @@
     border-radius: 8px;
     border: 1px solid #dcdfe4;
     font-size: 15px;
+    margin-left: 0px;
+    align-self: flex-start;
+}
+.survey-ui input[type="number"] {
+    width: 100%;
+    padding: 12px 0px;
+    border-radius: 8px;
+    border: 1px solid #dcdfe4;
+    font-size: 15px;
+    margin-left: 0px;
+    align-self: flex-start;
 }
 
 .survey-ui input:focus {

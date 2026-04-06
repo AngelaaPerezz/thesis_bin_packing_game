@@ -17,15 +17,25 @@
 <header id="main-header">
     <ul id="main-toolbar" class="toolbar">
         <li id="participant-toolbar-status" style="color: #fff; font-size: 1em; list-style: none; padding: 0 0.5em 0 0.5em;">No participant loaded.</li>
-        <li id="new-game-button" title="New game">
+        <li id="consent-survey-button" title="Open consent survey">
+            <svg class="icon" id="consent-survey-icon"><title>Consent Survey</title>
+                <use xlink:href="sprites.svg#consent-survey-icon"/></svg>
+            <span class="label">Consent</span>
+        </li>
+        <li id="new-game-button" title="New game" style="display:none">
             <svg class="icon" id="plus-icon"><title>New game</title>
                 <use xlink:href="sprites.svg#fa-plus"/></svg>
             <span class="label">New</span>
         </li>
-        <li id="reload-button" class="disabled" title="Regen">
+        <li id="reload-button" class="disabled" title="Regen" style="display:none">
             <svg class="icon" id="reload-icon"><title>Regen</title>
                 <use xlink:href="sprites.svg#fa-sync"/></svg>
             <span class="label">Regen</span>
+        </li>
+        <li id="unpack-button" title="Put back">
+            <svg class="icon" id="unpack-icon"><title>Put back</title>
+                <use xlink:href="sprites.svg#fa-broom"/></svg>
+            <span class="label">Unpack</span>
         </li>
         <li id="undo-button" class="disabled" title="Undo">
             <svg class="icon" id="undo-icon"><title>Undo</title>
@@ -42,7 +52,7 @@
                 <use xlink:href="sprites.svg#fa-search-pm"/></svg>
             <span class="label">Zoom</span>
         </li>
-        <li id="share-button" title="Share URL">
+        <li id="share-button" title="Share URL" style="display:none">
             <svg class="icon" id="share-icon"><title>Share URL</title>
                 <use xlink:href="sprites.svg#fa-share-alt"/></svg>
             <span class="label">Share</span>
@@ -52,17 +62,13 @@
                 <use xlink:href="sprites.svg#fa-save"/></svg>
             <span class="label">Save</span>
         </li>
-        <li id="unpack-button" title="Put back">
-            <svg class="icon" id="unpack-icon"><title>Put back</title>
-                <use xlink:href="sprites.svg#fa-broom"/></svg>
-            <span class="label">Unpack</span>
-        </li>
-        <li id="solutions-button" title="View solution">
+        
+        <li id="solutions-button" title="View solution" style="display:none">
             <svg class="icon" id="solutions-icon"><title>View solution</title>
                 <use xlink:href="sprites.svg#fa-eye"/></svg>
             <span class="label">Solution</span>
         </li>
-        <li id="auto-pack-button" title="Run algorithms">
+        <li id="auto-pack-button" title="Run algorithms" style="display:none">
             <svg class="icon" id="play-icon"><title>Run algorithms</title>
                 <use xlink:href="sprites.svg#fa-play"/></svg>
             <span class="label">Algo</span>
@@ -72,7 +78,7 @@
                 <use xlink:href="sprites.svg#fa-file-image"/></svg>
             <span class="label">Figure</span>
         </li>
-        <li id="edit-button" title="Creator mode">
+        <li id="edit-button" title="Creator mode" style="display:none">
             <svg class="icon" id="edit-icon"><title>Creator mode</title>
                 <use xlink:href="sprites.svg#fa-edit"/></svg>
             <span class="label">Edit</span>
@@ -81,7 +87,7 @@
             <svg class="icon" id="questionnaire-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 17a1.25 1.25 0 110-2.5A1.25 1.25 0 0112 19zm1.75-7.5h-3.5v-1.25c0-.69.56-1.25 1.25-1.25.75 0 1.25-.5 1.25-1.25S11.5 5.5 10.75 5.5 9.5 6 9.5 6.75H8c0-1.66 1.34-3 3-3s3 1.34 3 3c0 1.25-.75 2-1.25 2.25-.25.25-.5.5-.5 1.25V11.5z"/></svg>
             <span class="label">Survey</span>
         </li>
-        <li id="dark-mode-button">
+        <li id="dark-mode-button" style="display:none">
             <svg class="icon light-only" id="moon-icon"><title>Switch to dark mode</title>
                 <use xlink:href="sprites.svg#fa-moon"/></svg>
             <span class="label light-only">Dark</span>
@@ -89,7 +95,7 @@
                 <use xlink:href="sprites.svg#fa-sun"/></svg>
             <span class="label dark-only">Light</span>
         </li>
-        <li id="about-button" title="About">
+        <li id="about-button" title="About" style="display:none">
             <svg class="icon" id="about-icon"><title>About</title>
                 <use xlink:href="sprites.svg#fa-question"/></svg>
             <span class="label">About</span>
@@ -147,29 +153,117 @@
             </div>
             </form>
             <script>
-            // Multi-page survey navigation logic
+            // Multi-page survey navigation logic (generalized for all menus)
             document.addEventListener('DOMContentLoaded', function() {
-                const pages = Array.from(document.querySelectorAll('.survey-page'));
-                let currentPage = 0;
-                function showPage(idx) {
-                    pages.forEach((page, i) => {
-                        page.style.display = (i === idx) ? '' : 'none';
-                    });
-                }
-                showPage(currentPage);
-                document.querySelectorAll('.next-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        if (currentPage < pages.length - 1) {
-                            currentPage++;
-                            showPage(currentPage);
+                // For each survey-card, handle navigation independently
+                document.querySelectorAll('.survey-card').forEach(function(card) {
+                    // Find all pages inside this card (both .survey-page and .consent-survey-page)
+                    let allPages = Array.from(card.querySelectorAll('.survey-page, .consent-survey-page'));
+                    if (allPages.length === 0) return;
+                    let currentPage = 0;
+
+                    // Helper to get the current set of visible pages (handles conditional logic and explicit order)
+                    function getVisiblePages() {
+                        // Find pages by their data-page attribute for explicit ordering
+                        const page0 = card.querySelector('.survey-page[data-page="0"]');
+                        const page1 = card.querySelector('.survey-page[data-page="1"]');
+                        const puzzleExpPage = card.querySelector('.survey-page[data-page="puzzle-exp"]');
+                        const conditionalPage = card.querySelector('.survey-page.conditional-puzzle-exp[data-page="conditional"]');
+                        const priorExpRest = card.querySelector('.survey-page[data-page="prior-exp-rest"]');
+                        // Find all other pages (e.g., consent-survey-page, task reflection, etc.)
+                        let otherPages = allPages.filter(pg =>
+                            ![page0, page1, puzzleExpPage, conditionalPage, priorExpRest].includes(pg)
+                        );
+
+                        // The 'puzzle_exp' question is on the prior experience page (data-page='1')
+                        const priorExpPage = card.querySelector('.survey-page[data-page="1"]');
+                        let puzzleExpVal = undefined;
+                        if (priorExpPage) {
+                            puzzleExpVal = priorExpPage.querySelector('input[name="puzzle_exp"]:checked')?.value;
                         }
+                        let visiblePages = [];
+                        if (page0) visiblePages.push(page0);
+                        if (page1) visiblePages.push(page1);
+                        if (puzzleExpPage) visiblePages.push(puzzleExpPage);
+                        // Only show the conditional page if the user has answered the puzzle_exp question (on the current page) and the answer is not 'never' or 'rarely'
+                        if (conditionalPage && priorExpPage) {
+                            // Only check for checked input if the prior experience page is currently visible
+                            const checked = priorExpPage.querySelector('input[name="puzzle_exp"]:checked');
+                            if (checked && checked.value !== 'never' && checked.value !== 'rarely') {
+                                visiblePages.push(conditionalPage);
+                            }
+                        }
+                        if (priorExpRest) visiblePages.push(priorExpRest);
+                        // Add any remaining pages (e.g., task reflection, etc.)
+                        visiblePages = visiblePages.concat(otherPages);
+                        return visiblePages;
+                    }
+
+                    function showPage(idx) {
+                        let visiblePages = getVisiblePages();
+                        // If the current page is not in visiblePages, reset to the first visible page
+                        if (idx >= visiblePages.length) {
+                            idx = visiblePages.length - 1;
+                        }
+                        if (idx < 0) idx = 0;
+                        currentPage = idx;
+                        visiblePages.forEach((page, i) => {
+                            page.style.display = (i === idx) ? '' : 'none';
+                        });
+                        // Hide all other pages (including conditional page if not visible)
+                        allPages.forEach((page) => {
+                            if (!visiblePages.includes(page)) page.style.display = 'none';
+                        });
+                        // Scroll to top of the survey card when page changes
+                        card.scrollIntoView({behavior: 'auto', block: 'start'});
+                    }
+                    showPage(currentPage);
+
+                    // Next buttons
+                    card.querySelectorAll('.next-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const visiblePages = getVisiblePages();
+                            if (currentPage < visiblePages.length - 1) {
+                                currentPage++;
+                                showPage(currentPage);
+                            }
+                        });
+                    });
+                    // Previous buttons
+                    card.querySelectorAll('.prev-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            if (currentPage > 0) {
+                                currentPage--;
+                                showPage(currentPage);
+                            }
+                        });
+                    });
+
+                    // Listen for changes to the puzzle_exp question to update conditional page visibility
+                    card.querySelectorAll('input[name="puzzle_exp"]').forEach(input => {
+                        input.addEventListener('change', function() {
+                            // Always reset to the first visible page if the current page is now hidden
+                            // (recompute visiblePages, which now depends on the checked input)
+                            let visiblePages = getVisiblePages();
+                            if (currentPage >= visiblePages.length) {
+                                currentPage = visiblePages.length - 1;
+                            }
+                            showPage(currentPage);
+                        });
                     });
                 });
-                document.querySelectorAll('.prev-btn').forEach(btn => {
+
+                // Handle close buttons for all menus
+                document.querySelectorAll('.close-btn').forEach(function(btn) {
                     btn.addEventListener('click', function() {
-                        if (currentPage > 0) {
-                            currentPage--;
-                            showPage(currentPage);
+                        // Find the closest parent with class 'menu' or menu-like container
+                        let menu = btn.closest('.menu');
+                        if (menu) {
+                            menu.classList.add('disabled');
+                        } else {
+                            // Try to find a parent div with class 'menu' if not a form
+                            menu = btn.closest('div.menu');
+                            if (menu) menu.classList.add('disabled');
                         }
                     });
                 });
@@ -221,6 +315,51 @@ and documentation.</p>
 </section>
 <section id="modal-group">
     <div class="gas"></div>
+    <form id="consent-survey-menu" class="menu disabled">
+        <header>
+            <div class="heading">Consent Form</div>
+            <div class="close-btn"></div>
+        </header>
+        <div class="options menu-body">
+            <div class="survey-ui">
+                <div class="survey-card">
+                    <!-- Page 1: Info Text -->
+                    <div class="consent-survey-page" data-page="0">
+                        <h2 class="survey-section-title">Instructions</h2>
+                        <p class="survey-section-text">You are invited to take part in a study by Utrecht University on how people plan. Participation is voluntary, and you may ask questions at any time. <br><br>
+
+                        • In this study, you will play several rounds of a Bin Packing game. In each round, you will see different items in a resource area and must move them into a smaller target area so that everything fits. Each puzzle has a solution using one bin area, but you may use a second area if needed.<br><br>
+
+                        • The puzzles will vary in difficulty and time limits. You may take a short break after doing 10 trials. You will also be asked to complete a brief questionnaire about your demographics, and background and experience with the task.<br><br>
+
+                        • During the task, we will do a screen recording and your actions will be logged for research purposes.<br><br>   
+
+                        • The experiment will take up to 1 hour.<br><br>
+                        • The experiment is completely voluntary, and you may withdraw at any time without penalty.
+                        </p>
+                        <button type="button" class="next-btn survey-btn">Next</button>
+                    </div>
+                    <!-- Page 2: Consent Form -->
+                    <div class="consent-survey-page" data-page="1" style="display:none">
+                        <h2 class="survey-section-title">Consent Form</h2>
+                        <p class="survey-section-text">
+                        Check the box below if you agree with the following:<br>
+                        •	I have read the information letter about the study. I have understood what it says.<br>
+                        •	I have been able to ask questions, and my questions have been answered to my satisfaction.<br>
+                        •	I have had sufficient time to consider whether I wish to participate.<br>
+                        •	I am participating voluntarily.
+                        </p>
+                        <div class="input-pair">
+                            <input type="checkbox" id="consent-checkbox" name="consent-checkbox" />
+                            <label for="consent-checkbox">I agree to participate in this study</label>
+                        </div>
+                        <button type="button" class="prev-btn survey-btn">Previous</button>
+                        <button id="consent-survey-submit" type="submit" class="survey-btn">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
     <div id="ng-menu" class="menu disabled">
         <header>
             <div class="heading">Load a new game</div>
@@ -318,7 +457,7 @@ and documentation.</p>
                         <h2 class="survey-section-title">Demographics</h2>
                         <div class="input-pair">
                             <label for="age">What is your age (in years)?</label>
-                            <input id="age" name="age" type="number" placeholder="e.g. 23" />
+                            <input id="age" name="age" type="text" placeholder="E.g. 23" />
                         </div>
                         <div class="input-pair">
                             <label>What gender do you self-identify as?</label>
@@ -382,7 +521,6 @@ and documentation.</p>
                                 <label class="radio-option"><input type="radio" name="familiarity" value="agree"><span>Agree</span></label>
                                 <label class="radio-option"><input type="radio" name="familiarity" value="completely_agree"><span>Completely agree</span></label>
                             </div>
-                            <input name="familiarity_similar_games" type="text" placeholder="If applicable — name the games/puzzles…" />
                         </div>
                         <div class="input-pair">
                             <label>“I have played games/puzzles similar to the bin-packing task”</label>
@@ -393,18 +531,22 @@ and documentation.</p>
                                 <label class="radio-option"><input type="radio" name="puzzle_exp" value="often"><span>Often</span></label>
                                 <label class="radio-option"><input type="radio" name="puzzle_exp" value="veryoften"><span>Very often</span></label>
                             </div>
-                            <input name="puzzle_exp_description" type="text" placeholder="If applicable - please describe/name the game(s)/puzzle(s) you played, to the best of your ability:" />
+                        </div>
+                        
+                    <div class="input-pair">
+                            <label>If applicable; please describe/name the game(s)/puzzle(s) you played, to the best of your ability:</label>
+                            <input name="puzzle_exp_description" type="text" placeholder="Describe the game(s)/puzzle(s) you played" />
                         </div>
                         <div class="input-pair">
-                            <label>How frequently do you currently play game(s)/puzzle(s) similar to the bin-packing task?</label>
+                            <label>If applicable; how frequently do you currently play game(s)/puzzle(s) similar to the bin-packing task?</label>
                             <input name="frequency_of_playing" type="text" placeholder="E.g. once per week" />
                         </div>
                         <div class="input-pair">
-                            <label>If you don’t play such game(s)/puzzle(s) anymore, how often did you play them in the past? </label>
+                            <label>If applicable; how often did you play such game(s)/puzzle(s) in the past?</label>
                             <input name="past_frequency_of_playing" type="text" placeholder="E.g. once per week" />
                         </div>
                         <div class="input-pair">
-                            <label>How long ago was this (answer in months or years)?</label>
+                            <label>If applicable; how long ago was this (answer in months or years)?</label>
                             <input name="time_since_play" type="text" placeholder="E.g. 6 months ago" />
                         </div>
                         <div class="input-pair">

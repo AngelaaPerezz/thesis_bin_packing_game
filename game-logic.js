@@ -86,13 +86,11 @@ class PackingLog {
     logAttach(itemId, binId, xPos, yPos) {
         const elapsedTime = this.game._getElapsedTime();
         const reactionTime = this.lastEventTime !== null ? elapsedTime - this.lastEventTime : null;
-        
         this.placed_ids.add(itemId);
         this.unplaced_ids.delete(itemId);
-
         this.events.push({
             action: 'placement',
-            time: timeToString(elapsedTime),
+            time: elapsedTime, // Store as milliseconds
             reactionTime: reactionTime,
             itemId: itemId,
             binId: binId,
@@ -103,7 +101,6 @@ class PackingLog {
             n_backtrackings: this.n_backtrackings,
             binGrids: this._getGridSnapshot()
         });
-        
         this.lastEventTime = elapsedTime;
     }
 
@@ -112,10 +109,10 @@ class PackingLog {
         const reactionTime = this.lastEventTime !== null ? elapsedTime - this.lastEventTime : null;
         this.placed_ids.delete(itemId);
         this.unplaced_ids.add(itemId);
-        this.n_backtrackings = this.n_backtrackings + 1
+        this.n_backtrackings = this.n_backtrackings + 1;
         this.events.push({
             action: 'unplacement',
-            time: timeToString(elapsedTime),
+            time: elapsedTime, // Store as milliseconds
             reactionTime: reactionTime,
             itemId: itemId,
             placed_ids:  Array.from(this.placed_ids),
@@ -123,7 +120,6 @@ class PackingLog {
             n_backtrackings: this.n_backtrackings,   
             binGrids: this._getGridSnapshot()
         });
-        
         this.lastEventTime = elapsedTime;
     }
 
@@ -592,7 +588,17 @@ class Game {
         this.nBinsUsed = 0;
 
         this._createStatsBar();
-        this._startTimer();
+        // Blank the time field until timer starts
+        if (this.statsDomElems && this.statsDomElems['time']) {
+            this.statsDomElems['time'].innerHTML = '';
+        }
+        // Timer and popup logic for participant mode is now handled in extra-ui.js
+        // Only start timer immediately if not in participant mode or in practice trial
+        let inParticipantMode = (typeof window.isParticipantMode === 'function' && window.isParticipantMode());
+        let trialIdx = typeof window.participantTrialIndex !== 'undefined' ? window.participantTrialIndex : null;
+        if (!(inParticipantMode && trialIdx !== null && trialIdx >= 0 && (trialIdx === 0 || trialIdx === 9))) {
+            this._startTimer();
+        }
         this.packingLog = new PackingLog(this); 
         this._setScaleFactor(scaleFactor);
         this._createItems();
@@ -1378,6 +1384,10 @@ class Game {
     _startTimer() {
         this.startTime = Date.now();
         this.endTime = null;
+        // Set time field to 0:00 at timer start
+        if (this.statsDomElems && this.statsDomElems['time']) {
+            this.statsDomElems['time'].innerHTML = timeToString(0);
+        }
         this.timerId = setInterval(showTime, 100);
     }
 
@@ -1421,16 +1431,19 @@ function timeToString(delta) {
 
 function showTime() {
     if (game === null) {
-        console.warn('game is null but printTime is still running.')
-    }
-    else if (game.won) {
+        console.warn('game is null but printTime is still running.');
+    } else if (!game.startTime) {
+        // Timer not started yet, blank the time field
+        if (game.statsDomElems && game.statsDomElems['time']) {
+            game.statsDomElems['time'].innerHTML = '';
+        }
+    } else if (game.won) {
         clearInterval(game.timerId);
         if (game.endTime !== null) {
             var delta = game.endTime - game.startTime;
             game.statsDomElems['time'].innerHTML = timeToString(delta);
         }
-    }
-    else {
+    } else {
         var delta = Date.now() - game.startTime;
         game.statsDomElems['time'].innerHTML = timeToString(delta);
     }
