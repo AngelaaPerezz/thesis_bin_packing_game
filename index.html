@@ -152,123 +152,6 @@
                 <label for="edit-radio-item-drag">drag</label>
             </div>
             </form>
-            <script>
-            // Multi-page survey navigation logic (generalized for all menus)
-            document.addEventListener('DOMContentLoaded', function() {
-                // For each survey-card, handle navigation independently
-                document.querySelectorAll('.survey-card').forEach(function(card) {
-                    // Find all pages inside this card (both .survey-page and .consent-survey-page)
-                    let allPages = Array.from(card.querySelectorAll('.survey-page, .consent-survey-page'));
-                    if (allPages.length === 0) return;
-                    let currentPage = 0;
-
-                    // Helper to get the current set of visible pages (handles conditional logic and explicit order)
-                    function getVisiblePages() {
-                        // Find pages by their data-page attribute for explicit ordering
-                        const page0 = card.querySelector('.survey-page[data-page="0"]');
-                        const page1 = card.querySelector('.survey-page[data-page="1"]');
-                        const puzzleExpPage = card.querySelector('.survey-page[data-page="puzzle-exp"]');
-                        const conditionalPage = card.querySelector('.survey-page.conditional-puzzle-exp[data-page="conditional"]');
-                        const priorExpRest = card.querySelector('.survey-page[data-page="prior-exp-rest"]');
-                        // Find all other pages (e.g., consent-survey-page, task reflection, etc.)
-                        let otherPages = allPages.filter(pg =>
-                            ![page0, page1, puzzleExpPage, conditionalPage, priorExpRest].includes(pg)
-                        );
-
-                        // The 'puzzle_exp' question is on the prior experience page (data-page='1')
-                        const priorExpPage = card.querySelector('.survey-page[data-page="1"]');
-                        let puzzleExpVal = undefined;
-                        if (priorExpPage) {
-                            puzzleExpVal = priorExpPage.querySelector('input[name="puzzle_exp"]:checked')?.value;
-                        }
-                        let visiblePages = [];
-                        if (page0) visiblePages.push(page0);
-                        if (page1) visiblePages.push(page1);
-                        if (puzzleExpPage) visiblePages.push(puzzleExpPage);
-                        // Only show the conditional page if the user has answered the puzzle_exp question (on the current page) and the answer is not 'never' or 'rarely'
-                        if (conditionalPage && priorExpPage) {
-                            // Only check for checked input if the prior experience page is currently visible
-                            const checked = priorExpPage.querySelector('input[name="puzzle_exp"]:checked');
-                            if (checked && checked.value !== 'never' && checked.value !== 'rarely') {
-                                visiblePages.push(conditionalPage);
-                            }
-                        }
-                        if (priorExpRest) visiblePages.push(priorExpRest);
-                        // Add any remaining pages (e.g., task reflection, etc.)
-                        visiblePages = visiblePages.concat(otherPages);
-                        return visiblePages;
-                    }
-
-                    function showPage(idx) {
-                        let visiblePages = getVisiblePages();
-                        // If the current page is not in visiblePages, reset to the first visible page
-                        if (idx >= visiblePages.length) {
-                            idx = visiblePages.length - 1;
-                        }
-                        if (idx < 0) idx = 0;
-                        currentPage = idx;
-                        visiblePages.forEach((page, i) => {
-                            page.style.display = (i === idx) ? '' : 'none';
-                        });
-                        // Hide all other pages (including conditional page if not visible)
-                        allPages.forEach((page) => {
-                            if (!visiblePages.includes(page)) page.style.display = 'none';
-                        });
-                        // Scroll to top of the survey card when page changes
-                        card.scrollIntoView({behavior: 'auto', block: 'start'});
-                    }
-                    showPage(currentPage);
-
-                    // Next buttons
-                    card.querySelectorAll('.next-btn').forEach(btn => {
-                        btn.addEventListener('click', function() {
-                            const visiblePages = getVisiblePages();
-                            if (currentPage < visiblePages.length - 1) {
-                                currentPage++;
-                                showPage(currentPage);
-                            }
-                        });
-                    });
-                    // Previous buttons
-                    card.querySelectorAll('.prev-btn').forEach(btn => {
-                        btn.addEventListener('click', function() {
-                            if (currentPage > 0) {
-                                currentPage--;
-                                showPage(currentPage);
-                            }
-                        });
-                    });
-
-                    // Listen for changes to the puzzle_exp question to update conditional page visibility
-                    card.querySelectorAll('input[name="puzzle_exp"]').forEach(input => {
-                        input.addEventListener('change', function() {
-                            // Always reset to the first visible page if the current page is now hidden
-                            // (recompute visiblePages, which now depends on the checked input)
-                            let visiblePages = getVisiblePages();
-                            if (currentPage >= visiblePages.length) {
-                                currentPage = visiblePages.length - 1;
-                            }
-                            showPage(currentPage);
-                        });
-                    });
-                });
-
-                // Handle close buttons for all menus
-                document.querySelectorAll('.close-btn').forEach(function(btn) {
-                    btn.addEventListener('click', function() {
-                        // Find the closest parent with class 'menu' or menu-like container
-                        let menu = btn.closest('.menu');
-                        if (menu) {
-                            menu.classList.add('disabled');
-                        } else {
-                            // Try to find a parent div with class 'menu' if not a form
-                            menu = btn.closest('div.menu');
-                            if (menu) menu.classList.add('disabled');
-                        }
-                    });
-                });
-            });
-            </script>
             <div class="input-pair">
                 <input type="radio" id="edit-radio-item-delete" name="edit-item" value="delete" />
                 <label for="edit-radio-item-delete">delete</label>
@@ -457,7 +340,7 @@ and documentation.</p>
                         <h2 class="survey-section-title">Demographics</h2>
                         <div class="input-pair">
                             <label for="age">What is your age (in years)?</label>
-                            <input id="age" name="age" type="text" placeholder="E.g. 23" />
+                            <input id="age" name="age" type="text" required placeholder="E.g. 23" />
                         </div>
                         <div class="input-pair">
                             <label>What gender do you self-identify as?</label>

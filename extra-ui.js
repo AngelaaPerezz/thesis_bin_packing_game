@@ -130,11 +130,104 @@ window.addEventListener('DOMContentLoaded', function() {
             });
             currentPage = idx;
         }
-        document.querySelectorAll('.next-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (currentPage < pages.length - 1) showPage(currentPage + 1);
-            });
+
+        // Generic validation for any survey page
+        function validateSurveyPageAndMark(page) {
+                        console.log('Validating page:', page);
+            let firstUnanswered = null;
+            let valid = true;
+            // Remove old validation messages
+            page.querySelectorAll('.survey-inline-validation').forEach(el => el.remove());
+
+            // Helper to add message
+            function addMsg(input, msg) {
+                let msgDiv = document.createElement('div');
+                msgDiv.className = 'survey-inline-validation';
+                msgDiv.style.color = 'red';
+                msgDiv.style.fontSize = '0.95em';
+                msgDiv.style.margin = '0.2em 0 0.2em 0';
+                msgDiv.textContent = msg;
+                // Place after input or radio group
+                if (input.parentElement.classList.contains('radio-group')) {
+                    input.parentElement.parentElement.appendChild(msgDiv);
+                } else {
+                    input.parentElement.appendChild(msgDiv);
+                }
+            }
+
+            // Age (text, required)
+            const age = page.querySelector('input[name="age"]');
+            if (age && !age.value.trim()) {
+                addMsg(age, 'This question must be answered.');
+                if (!firstUnanswered) firstUnanswered = age;
+                valid = false;
+            }
+            // Gender (radio, required)
+            const genderRadios = page.querySelectorAll('input[name="gender"]');
+            if (genderRadios.length > 0) {
+                const genderChecked = page.querySelector('input[name="gender"]:checked');
+                if (!genderChecked) {
+                    addMsg(genderRadios[0], 'This question must be answered.');
+                    if (!firstUnanswered) firstUnanswered = genderRadios[0];
+                    valid = false;
+                }
+            }
+            // Degree (radio, required)
+            const degreeRadios = page.querySelectorAll('input[name="degree"]');
+            if (degreeRadios.length > 0) {
+                const degreeChecked = page.querySelector('input[name="degree"]:checked');
+                if (!degreeChecked) {
+                    addMsg(degreeRadios[0], 'This question must be answered.');
+                    if (!firstUnanswered) firstUnanswered = degreeRadios[0];
+                    valid = false;
+                }
+            }
+            // Faculty (radio, required)
+            const facultyRadios = page.querySelectorAll('input[name="faculty"]');
+            if (facultyRadios.length > 0) {
+                const facultyChecked = page.querySelector('input[name="faculty"]:checked');
+                if (!facultyChecked) {
+                    addMsg(facultyRadios[0], 'This question must be answered.');
+                    if (!firstUnanswered) firstUnanswered = facultyRadios[0];
+                    valid = false;
+                }
+            }
+            // Vision (radio, required)
+            const visionRadios = page.querySelectorAll('input[name="vision"]');
+            if (visionRadios.length > 0) {
+                const visionChecked = page.querySelector('input[name="vision"]:checked');
+                if (!visionChecked) {
+                    addMsg(visionRadios[0], 'This question must be answered.');
+                    if (!firstUnanswered) firstUnanswered = visionRadios[0];
+                    valid = false;
+                }
+            }
+            return {valid, firstUnanswered};
+        }
+
+        // Attach validation to all next buttons on all pages
+        pages.forEach((page, idx) => {
+            const nextBtn = page.querySelector('.next-btn');
+            if (nextBtn) {
+                nextBtn.addEventListener('click', (e) => {
+                    console.log('Next button clicked on page', idx);
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const {valid, firstUnanswered} = validateSurveyPageAndMark(page);
+                    console.log('Validation result:', valid, firstUnanswered);
+                    if (!valid) {
+                        console.log('Validation failed:');
+                        if (firstUnanswered && typeof firstUnanswered.scrollIntoView === 'function') {
+                            firstUnanswered.scrollIntoView({behavior: 'smooth', block: 'center'});
+                            firstUnanswered.focus();
+                        }
+                        return;
+                    }
+                    if (currentPage < pages.length - 1) showPage(currentPage + 1);
+                });
+            }
         });
+        // Previous buttons remain unchanged
         document.querySelectorAll('.prev-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 if (currentPage > 0) showPage(currentPage - 1);
