@@ -348,6 +348,7 @@ window.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+
 function toggleFromToolbar(buttonId) {
     if (document.getElementById(buttonId)) {
         toolbarButtonChooser.select(buttonId, true);
@@ -1057,9 +1058,24 @@ function addExtraUIEventListeners() {
     editForm.addEventListener('change', editFormCheckHandler);
     editForm.addEventListener('input', editFormCheckHandler);
 
-    for(let elem of document.querySelectorAll('.menu .close-btn')) {
-        elem.addEventListener('click', (ev) => unsetToolbar());
-    }
+    // Use event delegation for .close-btn elements inside menus/overlays only
+    document.addEventListener('click', function(ev) {
+        if (
+            ev.target.classList.contains('close-btn') &&
+            (
+                ev.target.closest('.menu') ||
+                ev.target.closest('.overlay')
+            )
+        ) {
+            console.log('Menu close button clicked:', ev.target);
+            ev.preventDefault();
+            ev.stopPropagation();
+            unsetToolbar();
+            if (typeof menuChooser !== 'undefined' && menuChooser.unset) {
+                menuChooser.unset();
+            }
+        }
+    });
     document.querySelector('#modal-group > .overlay').addEventListener('click',
         (ev) => unsetToolbar());
 
