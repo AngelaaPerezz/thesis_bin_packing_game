@@ -183,7 +183,11 @@ window.addEventListener('DOMContentLoaded', function() {
                 const label = pair.querySelector('label');
                 if (!label) return;
                 const labelText = label.textContent.trim().toLowerCase();
-                if (labelText.startsWith('if applicable') || labelText.startsWith('any further remarks')) return;
+                if (
+                    labelText.startsWith('if applicable') ||
+                    labelText.startsWith('any further remarks') ||
+                    labelText.startsWith('if you selected liberal arts')
+                ) return;
                 const textInput = pair.querySelector('input[type="text"]');
                 const radioGroup = pair.querySelector('.radio-group');
                 let hasRadio = false, hasText = false;
