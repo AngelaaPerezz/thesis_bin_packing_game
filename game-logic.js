@@ -70,17 +70,15 @@ class PackingLog {
 
     _getItemsMetadata() {
         // Get metadata for all items
-        const items = [];
-        for (let itemIdx = 0; itemIdx < this.game.items.length; itemIdx++) {
-            const item = this.game.items[itemIdx];
-            items.push({
-                itemId: itemIdx,
-                xLen: item.itemInfo.xLen,
-                yLen: item.itemInfo.yLen,
-                color: item.itemInfo.color
-            });
-        }
-        return items;
+        return this.game.level.items.map(item => {
+            return {
+                id: item.id,
+                xLen: item.xLen,
+                yLen: item.yLen,
+                color: item.color,
+                n: item.n
+            };
+        });
     }
 
     logAttach(itemId, binId, xPos, yPos) {
@@ -146,10 +144,23 @@ class PackingLog {
 
     finishTrial(trialNumber) {
         // Save current trial data
+        // Attach condition info at the top level if available
+        let condition = null;
+        if (this.game.level && this.game.level.condition) {
+            condition = this.game.level.condition;
+        } else if (typeof window !== 'undefined' && window.isParticipantMode && window.isParticipantMode() && typeof window.participantTrialList !== 'undefined' && typeof window.participantTrialIndex !== 'undefined' && window.participantTrialIndex >= 0) {
+            let trial = window.participantTrialList[window.participantTrialIndex];
+            if (trial && trial.condition) {
+                condition = trial.condition;
+            }
+        }
         const trialData = {
             items: this._getItemsMetadata(),
             actions: this.events
         };
+        if (condition) {
+            trialData.condition = condition;
+        }
         // store in per-game record
         this.trials[`trial ${trialNumber}`] = trialData;
         // also store globally so trials persist across Game instances
@@ -162,10 +173,23 @@ class PackingLog {
     }
 
     getLog() {
+        // Attach condition info at the top level if available
+        let condition = null;
+        if (this.game.level && this.game.level.condition) {
+            condition = this.game.level.condition;
+        } else if (typeof window !== 'undefined' && window.isParticipantMode && window.isParticipantMode() && typeof window.participantTrialList !== 'undefined' && typeof window.participantTrialIndex !== 'undefined' && window.participantTrialIndex >= 0) {
+            let trial = window.participantTrialList[window.participantTrialIndex];
+            if (trial && trial.condition) {
+                condition = trial.condition;
+            }
+        }
         const logData = {
             items: this._getItemsMetadata(),
             actions: this.events
         };
+        if (condition) {
+            logData.condition = condition;
+        }
         return this.formatMatrix(logData);
     }
 

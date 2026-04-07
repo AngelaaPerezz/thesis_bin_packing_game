@@ -21,7 +21,7 @@ window.showPuzzlePopup = function(trialNumber, onClose) {
     popup.style.borderRadius = '10px';
     popup.style.boxShadow = '0 2px 16px rgba(0,0,0,0.3)';
     popup.style.textAlign = 'center';
-    let msg = trialNumber === 1 ? 'Start of the experiment! Click Continue to begin.' : 'You can now have a short break before starting Puzzle 10. We encourage you to take a short walk. Click Continue when you are ready.';
+    let msg = trialNumber === 1 ? 'Start of the experiment! Click Continue to begin.' : 'You can now have a short break before starting Puzzle 11. We encourage you to take a short walk. Click Continue when you are ready.';
     popup.innerHTML = `<div style="margin-bottom:1em;">${msg}</div>`;
     let btn = document.createElement('button');
     btn.textContent = 'Continue';
@@ -147,61 +147,79 @@ window.addEventListener('DOMContentLoaded', function() {
                 msgDiv.style.fontSize = '0.95em';
                 msgDiv.style.margin = '0.2em 0 0.2em 0';
                 msgDiv.textContent = msg;
-                // Place after input or radio group
-                if (input.parentElement.classList.contains('radio-group')) {
-                    input.parentElement.parentElement.appendChild(msgDiv);
-                } else {
+                // For radio groups, find the main label that is a sibling of the .radio-group
+                let container = input.closest('.input-pair') || input.parentElement;
+                let label = null;
+                let radioGroup = null;
+                if (container) {
+                    radioGroup = container.querySelector('.radio-group');
+                    if (radioGroup) {
+                        // Find the label that is a sibling of the .radio-group
+                        let children = Array.from(container.children);
+                        let idx = children.indexOf(radioGroup);
+                        if (idx > 0 && children[idx-1].tagName === 'LABEL') {
+                            label = children[idx-1];
+                        }
+                    }
+                }
+                // Fallback: use the label in the parent
+                if (!label && container) {
+                    label = container.querySelector('label');
+                }
+                if (label && label.parentElement) {
+                    label.parentElement.insertBefore(msgDiv, label.nextSibling);
+                } else if (container) {
+                    container.appendChild(msgDiv);
+                } else if (input.parentElement) {
                     input.parentElement.appendChild(msgDiv);
+                } else {
+                    input.after(msgDiv);
                 }
             }
 
-            // Age (text, required)
-            const age = page.querySelector('input[name="age"]');
-            if (age && !age.value.trim()) {
-                addMsg(age, 'This question must be answered.');
-                if (!firstUnanswered) firstUnanswered = age;
-                valid = false;
-            }
-            // Gender (radio, required)
-            const genderRadios = page.querySelectorAll('input[name="gender"]');
-            if (genderRadios.length > 0) {
-                const genderChecked = page.querySelector('input[name="gender"]:checked');
-                if (!genderChecked) {
-                    addMsg(genderRadios[0], 'This question must be answered.');
-                    if (!firstUnanswered) firstUnanswered = genderRadios[0];
-                    valid = false;
+            // Make all questions mandatory except those starting with 'If applicable' and 'Any further remarks?'
+            const inputPairs = page.querySelectorAll('.input-pair');
+            inputPairs.forEach(pair => {
+                const label = pair.querySelector('label');
+                if (!label) return;
+                const labelText = label.textContent.trim().toLowerCase();
+                if (labelText.startsWith('if applicable') || labelText.startsWith('any further remarks')) return;
+                const textInput = pair.querySelector('input[type="text"]');
+                const radioGroup = pair.querySelector('.radio-group');
+                let hasRadio = false, hasText = false;
+                if (radioGroup) {
+                    const radios = radioGroup.querySelectorAll('input[type="radio"]');
+                    if (radios.length > 0) {
+                        hasRadio = Array.from(radios).some(r => r.checked);
+                    }
                 }
-            }
-            // Degree (radio, required)
-            const degreeRadios = page.querySelectorAll('input[name="degree"]');
-            if (degreeRadios.length > 0) {
-                const degreeChecked = page.querySelector('input[name="degree"]:checked');
-                if (!degreeChecked) {
-                    addMsg(degreeRadios[0], 'This question must be answered.');
-                    if (!firstUnanswered) firstUnanswered = degreeRadios[0];
-                    valid = false;
+                if (textInput && textInput.value.trim()) {
+                    hasText = true;
                 }
-            }
-            // Faculty (radio, required)
-            const facultyRadios = page.querySelectorAll('input[name="faculty"]');
-            if (facultyRadios.length > 0) {
-                const facultyChecked = page.querySelector('input[name="faculty"]:checked');
-                if (!facultyChecked) {
-                    addMsg(facultyRadios[0], 'This question must be answered.');
-                    if (!firstUnanswered) firstUnanswered = facultyRadios[0];
-                    valid = false;
+                // If both present, only require one
+                if (radioGroup && textInput) {
+                    if (!hasRadio && !hasText) {
+                        addMsg(radioGroup.querySelector('input[type="radio"]') || textInput, 'This question must be answered.');
+                        if (!firstUnanswered) firstUnanswered = radioGroup.querySelector('input[type="radio"]') || textInput;
+                        valid = false;
+                    }
+                } else if (radioGroup) {
+                    if (!hasRadio) {
+                        const radios = radioGroup.querySelectorAll('input[type="radio"]');
+                        if (radios.length > 0) {
+                            addMsg(radios[0], 'This question must be answered.');
+                            if (!firstUnanswered) firstUnanswered = radios[0];
+                            valid = false;
+                        }
+                    }
+                } else if (textInput) {
+                    if (!hasText) {
+                        addMsg(textInput, 'This question must be answered.');
+                        if (!firstUnanswered) firstUnanswered = textInput;
+                        valid = false;
+                    }
                 }
-            }
-            // Vision (radio, required)
-            const visionRadios = page.querySelectorAll('input[name="vision"]');
-            if (visionRadios.length > 0) {
-                const visionChecked = page.querySelector('input[name="vision"]:checked');
-                if (!visionChecked) {
-                    addMsg(visionRadios[0], 'This question must be answered.');
-                    if (!firstUnanswered) firstUnanswered = visionRadios[0];
-                    valid = false;
-                }
-            }
+            });
             return {valid, firstUnanswered};
         }
 
@@ -461,6 +479,8 @@ function loadParticipantTrialByIndex(index) {
             return resp.json();
         })
         .then(level => {
+            // Attach condition to level so it is always available in logs
+            level.condition = cond;
             if (cond === 'A' || cond === 'C') {
                 if (Array.isArray(level.bins)) {
                     for (let bin of level.bins) {
@@ -480,8 +500,8 @@ function loadParticipantTrialByIndex(index) {
                         game.putBack();
                     }
                     updateCurrentPuzzle(trial.Trial);
-                    // Only start the countdown after popup for 1st and 10th real trial
-                    if ((participantTrialIndex === 0 || participantTrialIndex === 9) && typeof window.showPuzzlePopup === 'function') {
+                    // Only start the countdown after popup for 1st and 11th real trial
+                    if ((participantTrialIndex === 0 || participantTrialIndex === 10) && typeof window.showPuzzlePopup === 'function') {
                         // Hide countdown and stats bar time while popup is open
                         if (timerBox) timerBox.style.display = 'none';
                         if (game && game.statsDomElems && game.statsDomElems['time']) {
