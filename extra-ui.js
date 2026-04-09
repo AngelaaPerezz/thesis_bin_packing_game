@@ -129,6 +129,12 @@ window.addEventListener('DOMContentLoaded', function() {
                 pg.style.display = (i === idx) ? '' : 'none';
             });
             currentPage = idx;
+            // Always scroll to top when opening a survey page (robust)
+            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+            // Also scroll the page element itself into view if possible
+            if (pages[idx] && typeof pages[idx].scrollIntoView === 'function') {
+                pages[idx].scrollIntoView({ behavior: 'auto', block: 'start' });
+            }
         }
 
         // Generic validation for any survey page
@@ -186,7 +192,7 @@ window.addEventListener('DOMContentLoaded', function() {
                 if (
                     labelText.startsWith('if applicable') ||
                     labelText.startsWith('any further remarks') ||
-                    labelText.startsWith('if you selected liberal arts')
+                    labelText.startsWith('if you selected')
                 ) return;
                 const textInput = pair.querySelector('input[type="text"]');
                 const radioGroup = pair.querySelector('.radio-group');
@@ -1351,6 +1357,17 @@ document.getElementById('prev-level-button').addEventListener('click', () => {
 });
 
 document.getElementById('next-level-button').addEventListener('click', () => {
+    // Download log before moving to next trial/level ONLY if game is not finished
+    if (
+        typeof game !== 'undefined' && game !== null &&
+        game.packingLog && typeof game.packingLog.downloadLog === 'function' &&
+        game.won === false
+    ) {
+        let participant = typeof participantIdSelected !== 'undefined' ? participantIdSelected : 'unknown';
+        let trialNum = (typeof participantTrialIndex !== 'undefined' && participantTrialList && participantTrialList[participantTrialIndex]) ? participantTrialList[participantTrialIndex].Trial : 'unknown';
+        let filename = `packing-log-participant-${participant}-trial-${trialNum}.json`;
+        game.packingLog.downloadLog(filename);
+    }
     if (isParticipantMode()) {
         participantNextTrial();
         return;
