@@ -338,7 +338,7 @@ window.addEventListener('DOMContentLoaded', function() {
         // Add introduction paragraph in bold
         const intro = document.createElement('p');
         intro.className = 'survey-section-text';
-        intro.textContent = 'The following are pictures of 4 puzzles that you encountered during the experiment. Please, write what strategy would you follow to begin (which box would you aim for first and why, what would you do afterwards, ...).';
+        intro.textContent = 'The following are pictures of 4 puzzles that you encountered during the experiment. Please, write what strategy would you follow for the first 2 or 3 steps (which box would you aim for first and why, what would you do afterwards, ...).';
         anchor.appendChild(intro);
         for (let i = 1; i <= 4; i++) {
             const div = document.createElement('div');
