@@ -135,3 +135,72 @@ python -m http.server 8000
 
 {"xLen": 4, "yLen": 1, "color": "hsl(154, 100%, 50%)", "n": 2},
 {"xLen": 4, "yLen": 4, "color": "hsl(175, 100%, 50%)", "n": 2}
+
+['consent-survey-button', 'consent-survey-menu'],
+
+// Consent survey page navigation logic
+    const consentPages = document.querySelectorAll('.consent-survey-page');
+    if (consentPages.length > 0) {
+        let consentCurrentPage = 0;
+        function showConsentPage(idx) {
+            consentPages.forEach((pg, i) => {
+                pg.style.display = (i === idx) ? '' : 'none';
+            });
+            consentCurrentPage = idx;
+        }
+        document.querySelectorAll('.next-btn.survey-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (consentCurrentPage < consentPages.length - 1) showConsentPage(consentCurrentPage + 1);
+            });
+        });
+        document.querySelectorAll('.prev-btn.survey-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (consentCurrentPage > 0) showConsentPage(consentCurrentPage - 1);
+            });
+        });
+        showConsentPage(0);
+    }
+
+    // Consent survey submit handler
+    const consentForm = document.getElementById('consent-survey-menu');
+    if (consentForm) {
+        consentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const consentChecked = document.getElementById('consent-checkbox').checked;
+            if (!consentChecked) {
+                alert('You must give consent to proceed.');
+                return;
+            }
+            // Get participant ID
+            let participantId = (typeof participantIdSelected !== 'undefined' && participantIdSelected !== null) ? participantIdSelected : 'unknown';
+            // Prepare confirmation content
+            const dateStr = new Date().toISOString().slice(0, 10);
+            const confirmation = {
+                participantId: participantId,
+                date: dateStr,
+                consentGiven: true,
+                message: 'Participant gave consent for the study.'
+            };
+            const blob = new Blob([JSON.stringify(confirmation, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `consent-confirmation-participant-${participantId}-${dateStr}.json`;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+            consentForm.classList.add('disabled');
+            alert('Thank you for your consent! Confirmation downloaded.');
+        });
+        // Add event listener to toolbar button to open modal
+        var consentSurveyButton = document.getElementById('consent-survey-button');
+        if (consentSurveyButton) {
+            consentSurveyButton.addEventListener('click', function() {
+                toggleFromToolbar('consent-survey-button');
+            });
+        }
+    }
