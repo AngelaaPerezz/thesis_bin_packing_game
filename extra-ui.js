@@ -1126,8 +1126,12 @@ function addExtraUIEventListeners() {
                     response[key] = value;
                 }
             }
+
+            // Use only the date (YYYY-MM-DD) for the filename
             response.submittedAt = new Date().toISOString();
             response.level = document.getElementById('current-puzzle-label')?.textContent || null;
+
+            let participant = typeof participantIdSelected !== 'undefined' && participantIdSelected !== null ? participantIdSelected : 'unknown';
 
             let stored = [];
             try {
@@ -1139,9 +1143,9 @@ function addExtraUIEventListeners() {
             stored.push(response);
             window.localStorage.setItem('questionnaireResponses', JSON.stringify(stored));
 
-            // Download response as JSON file (with cross-browser fallback)
             let jsonText = JSON.stringify(response, null, 2);
-            let filename = 'questionnaire-response-' + response.submittedAt.replace(/[:.]/g, '-') + '.json';
+            let dateOnly = response.submittedAt.slice(0, 10); // YYYY-MM-DD
+            let filename = 'questionnaire-response-' + dateOnly + '-participant-' + participant + '.json';
             let blob = new Blob([jsonText], {type: 'application/json'});
 
             if (window.navigator && window.navigator.msSaveOrOpenBlob) {
